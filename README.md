@@ -14,7 +14,7 @@ Any mature ML pipeline accumulates dozens or hundreds of runs in MLflow. Manuall
 
 This agent takes a natural language query, connects to a MLflow Tracking Server, and autonomously produces a structured analysis report — covering metric comparisons, overfitting diagnostics, hyperparameter pattern analysis, and next-experiment suggestions.
 
-**Stack:** Python · [deepagents](https://pypi.org/project/deepagents/) (LangGraph) · MLflow · LangSmith · Anthropic Claude
+**Stack:** Python · [deepagents](https://pypi.org/project/deepagents/) (LangGraph) · MLflow · LangSmith · Llama 3.1 via [Ollama](https://ollama.com/) *(swappable to any LangChain-compatible LLM)*
 
 ---
 
@@ -33,17 +33,21 @@ cd ml-experiment-analyst-agent
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-# 2. Configure environment
-cp .env.example .env
-# Fill in ANTHROPIC_API_KEY, LANGCHAIN_API_KEY, TAVILY_API_KEY
+# 2. Install and start Ollama (https://ollama.com/)
+ollama pull llama3.1:8b
 
-# 3. Start MLflow (Docker required)
+# 3. Configure environment
+cp .env.example .env
+# Fill in LANGCHAIN_API_KEY and TAVILY_API_KEY
+# LLM_PROVIDER=ollama is the default — no API key needed for local inference
+
+# 4. Start MLflow (Docker required)
 make mlflow-up
 
-# 4. Seed demo experiments
+# 5. Seed demo experiments
 make seed-mlflow
 
-# 5. Run the demo
+# 6. Run the demo
 make run-demo
 ```
 
