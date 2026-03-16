@@ -1,0 +1,12 @@
+# Install project with dev extras instead:
+#   pip install -e ".[dev]"
+#
+# This file is kept for compatibility with tools that expect requirements-dev.txt.
+
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=5.0.0
+pytest-mock>=3.14.0
+ruff>=0.6.0
+mypy>=1.11.0
+pandas-stubs>=2.2.0
