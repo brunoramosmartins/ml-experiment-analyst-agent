@@ -6,6 +6,8 @@ do
 
     while IFS="|" read -r title milestone labels body
     do
+        [ -z "$title" ] && continue
+
         gh issue create \
             --title "$title" \
             --milestone "$milestone" \
