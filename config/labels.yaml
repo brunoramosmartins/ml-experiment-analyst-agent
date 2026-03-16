@@ -3,12 +3,17 @@ infrastructure|1D76DB|Infrastructure components
 devops|0E8A16|CI/CD automation
 documentation|0052CC|Documentation work
 architecture|FBCA04|Architecture decisions
-feature|0E8A16|New features
+feature|7057FF|New features
 testing|FBCA04|Testing related tasks
 observability|1D76DB|Observability components
 dashboard|BFDADC|Dashboard work
 tool|C2E0C6|Agent tools
 agent|F9D0C4|Agent related tasks
+mlflow|0075CA|MLflow integration tasks
+analysis|E4E669|Data analysis modules
+prompt-engineering|FF6B6B|System prompt work
+hitl|FF9500|Human-in-the-loop features
+portfolio|BFD4F2|Portfolio and publishing tasks
 phase-0|F9D0C4|Phase 0 tasks
 phase-1|FEF2C0|Phase 1 tasks
 phase-2|C2E0C6|Phase 2 tasks
