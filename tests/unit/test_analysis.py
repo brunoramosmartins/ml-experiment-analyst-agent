@@ -14,7 +14,6 @@ from src.analysis.patterns import correlate_params_metrics
 from src.analysis.suggestions import AnalysisResult, suggest_next_experiments
 from src.mlflow_client.models import RunDetails
 
-
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _run(

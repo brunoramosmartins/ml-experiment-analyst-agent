@@ -6,11 +6,12 @@ that the agent saves via FilesystemBackend.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from src.analysis.overfitting import OverfittingReport, OverfitSeverity
+import pandas as pd
+
+from src.analysis.overfitting import OverfitSeverity, OverfittingReport
 from src.analysis.suggestions import AnalysisResult
-
 
 _SEVERITY_ICON = {
     OverfitSeverity.NONE: "✅",
@@ -33,7 +34,7 @@ def generate_markdown_report(
     Returns:
         Full Markdown string ready to be written to disk.
     """
-    now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
     sections: list[str] = []
 
     # ── Header ────────────────────────────────────────────────────────────────
@@ -74,7 +75,10 @@ def generate_markdown_report(
                 icon = _SEVERITY_ICON.get(r.severity, "")
                 worst = max(r.gaps, key=lambda g: g.gap, default=None)
                 gap_str = f"{worst.gap:.3f} ({worst.metric_base})" if worst else "—"
-                rows.append(f"| `{r.run_name or r.run_id}` | {icon} {r.severity.value} | {gap_str} | {r.message} |")
+                name = r.run_name or r.run_id
+                rows.append(
+                    f"| `{name}` | {icon} {r.severity.value} | {gap_str} | {r.message} |"
+                )
             sections.append("\n".join(rows))
         else:
             sections.append("✅ No overfitting detected in any analyzed run.")
@@ -130,10 +134,8 @@ def generate_markdown_report(
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
-def _df_to_markdown(df: "pd.DataFrame") -> str:  # type: ignore[name-defined]
+def _df_to_markdown(df: pd.DataFrame) -> str:
     """Convert a DataFrame to a Markdown table string."""
-    import pandas as pd
-
     if df.empty:
         return "_Empty._"
 
@@ -142,7 +144,8 @@ def _df_to_markdown(df: "pd.DataFrame") -> str:  # type: ignore[name-defined]
     for col in df.select_dtypes(include="float").columns:
         df[col] = df[col].round(4)
 
-    lines = ["| " + " | ".join([df.index.name or "run_id"] + list(df.columns)) + " |"]
+    index_name = str(df.index.name) if df.index.name is not None else "run_id"
+    lines = ["| " + " | ".join([index_name] + [str(c) for c in df.columns]) + " |"]
     lines.append("|" + "|".join(["---"] * (len(df.columns) + 1)) + "|")
     for idx, row in df.iterrows():
         lines.append("| " + " | ".join([str(idx)] + [str(v) for v in row]) + " |")

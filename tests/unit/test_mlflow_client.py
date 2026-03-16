@@ -5,14 +5,12 @@ All tests use unittest.mock — no real MLflow server required.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.mlflow_client.client import MLflowAnalystClient, MLflowClientError
 from src.mlflow_client.models import RunDetails
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -38,8 +36,10 @@ def _mock_run(
     run.info.start_time = 1_700_000_000_000
     run.info.end_time = 1_700_000_060_000
     run.info.artifact_uri = "s3://bucket/run-001"
-    run.data.params = params if params is not None else {"n_estimators": "100", "max_depth": "5"}
-    run.data.metrics = metrics if metrics is not None else {"train_accuracy": 0.95, "val_accuracy": 0.88}
+    default_params = {"n_estimators": "100", "max_depth": "5"}
+    default_metrics = {"train_accuracy": 0.95, "val_accuracy": 0.88}
+    run.data.params = params if params is not None else default_params
+    run.data.metrics = metrics if metrics is not None else default_metrics
     run.data.tags = {"model_type": "random_forest"}
     return run
 

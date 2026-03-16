@@ -8,10 +8,11 @@ clear, actionable messages instead of raw stack traces.
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import mlflow
 import pandas as pd
+from mlflow.entities import Run
 from mlflow.exceptions import MlflowException
 
 from src.mlflow_client.models import ExperimentInfo, RunDetails, RunInfo
@@ -30,8 +31,10 @@ class MLflowAnalystClient:
     """
 
     def __init__(self, tracking_uri: str | None = None) -> None:
-        self._tracking_uri = tracking_uri or os.getenv(
-            "MLFLOW_TRACKING_URI", "http://localhost:5000"
+        self._tracking_uri: str = (
+            tracking_uri
+            or os.getenv("MLFLOW_TRACKING_URI")
+            or "http://localhost:5000"
         )
         mlflow.set_tracking_uri(self._tracking_uri)
         self._client = mlflow.MlflowClient(tracking_uri=self._tracking_uri)
@@ -106,7 +109,7 @@ class MLflowAnalystClient:
             MLflowClientError: If the experiment is not found or server is offline.
         """
         try:
-            runs = mlflow.search_runs(
+            runs: list[Run] = mlflow.search_runs(  # type: ignore[assignment]
                 experiment_ids=[experiment_id],
                 filter_string=filter_string,
                 order_by=[order_by] if order_by else None,
@@ -215,4 +218,4 @@ def _ms_to_dt(ms: int | None) -> datetime | None:
     """Convert millisecond timestamp to UTC datetime."""
     if ms is None:
         return None
-    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+    return datetime.fromtimestamp(ms / 1000, tz=UTC)

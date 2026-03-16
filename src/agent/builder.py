@@ -78,7 +78,7 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
 
     llm = _build_llm(config)
     system_prompt = _load_system_prompt()
-    backend = FilesystemBackend(root=config.workspace_path)
+    backend = FilesystemBackend(root_dir=config.workspace_path)
 
     agent = create_deep_agent(
         model=llm,
