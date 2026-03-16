@@ -1,0 +1,6 @@
+[SETUP] Create repository and base project structure|Phase 0: Foundation & Setup|setup,phase-0|Initialize repository structure and baseline files
+[SETUP] Configure milestones labels and templates|Phase 0: Foundation & Setup|setup,phase-0|Configure GitHub governance elements
+[SETUP] Configure Python environment|Phase 0: Foundation & Setup|setup,phase-0|Setup pyproject.toml and dependencies
+[DEVOPS] Configure GitHub Actions CI|Phase 0: Foundation & Setup|devops,phase-0|Create CI pipeline with pytest and ruff
+[INFRA] Configure MLflow local environment|Phase 0: Foundation & Setup|infrastructure,phase-0|Docker compose MLflow environment
+[ARCHITECTURE] Document architecture decisions|Phase 0: Foundation & Setup|documentation,architecture,phase-0|Create architecture decision records

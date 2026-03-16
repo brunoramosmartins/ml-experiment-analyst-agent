@@ -1,0 +1,8 @@
+Phase 0: Foundation & Setup|Repository governance and architecture decisions
+Phase 1: Agent Infrastructure|Agent runtime infrastructure
+Phase 2: Custom Tools|Custom MLflow analysis tools
+Phase 3: Agent Assembly|Agent orchestration and prompts
+Phase 4: Observability|Tracing and governance layer
+Phase 5: Testing|Integration and CI validation
+Phase 6: Portfolio Polish|Documentation and demo
+Phase 7: Publishing|Portfolio publication
