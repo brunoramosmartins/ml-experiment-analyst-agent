@@ -1,0 +1,19 @@
+setup|5319E7|Repository setup tasks
+infrastructure|1D76DB|Infrastructure components
+devops|0E8A16|CI/CD automation
+documentation|0052CC|Documentation work
+architecture|FBCA04|Architecture decisions
+feature|0E8A16|New features
+testing|FBCA04|Testing related tasks
+observability|1D76DB|Observability components
+dashboard|BFDADC|Dashboard work
+tool|C2E0C6|Agent tools
+agent|F9D0C4|Agent related tasks
+phase-0|F9D0C4|Phase 0 tasks
+phase-1|FEF2C0|Phase 1 tasks
+phase-2|C2E0C6|Phase 2 tasks
+phase-3|BFDADC|Phase 3 tasks
+phase-4|D4C5F9|Phase 4 tasks
+phase-5|F9C2FF|Phase 5 tasks
+phase-6|C5DEF5|Phase 6 tasks
+phase-7|E6E6E6|Phase 7 tasks
