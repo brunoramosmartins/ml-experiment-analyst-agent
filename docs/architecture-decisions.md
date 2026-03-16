@@ -42,40 +42,69 @@ The agent needs a framework that provides: tool calling, planning (todo list), f
 
 ---
 
-## ADR-002: Default LLM — claude-sonnet-4-5
+## ADR-002: Default LLM — Llama 3 via Ollama (local)
 
-**Status:** Accepted
+**Status:** Accepted — supersedes initial proposal of claude-sonnet-4-5
 
 ### Context
 
 The agent performs analytical reasoning over structured data (MLflow metrics, parameters, run comparisons). The model must: follow multi-step instructions reliably, produce structured text output (Markdown reports, ranked lists), and handle tool calling accurately.
 
+The initial proposal was to use `claude-sonnet-4-5` (deepagents default). However, **development and iteration velocity matter more than output quality at this stage** — running hundreds of test queries during Phases 1–3 against a paid API would accumulate significant cost. A local model enables unlimited free iteration before committing to a production LLM.
+
+The architecture is designed to be **LLM-agnostic**: because deepagents is built on LangChain/LangGraph, swapping the model requires changing a single parameter in `src/agent/config.py` with no impact on tools, analysis logic, or report generation.
+
 ### Alternatives Considered
 
-| Model | Notes |
-|---|---|
-| **claude-sonnet-4-5** | Anthropic's production Sonnet. Strong analytical reasoning, native tool use, good instruction following. Default in deepagents. |
-| **gpt-4o** | Strong performance, but adds OpenAI dependency. The stack is already Anthropic-centric (deepagents default). |
-| **gemini-pro** | Google ecosystem. Less tooling integration with LangChain/deepagents out of the box. |
-| **claude-haiku-4-5** | Faster and cheaper, but lower reasoning quality for complex analysis tasks. |
+| Model | Provider | Cost | Tool Calling | Notes |
+|---|---|---|---|---|
+| **Llama 3.1 8B / 70B** | Local (Ollama) | Free | ✅ via Ollama | Good tool calling support from 3.1+. Runs on consumer hardware (8B) or a capable workstation (70B). |
+| **Llama 3.2 3B** | Local (Ollama) | Free | ✅ | Lighter, faster, weaker reasoning on complex analysis. |
+| **Mistral 7B / Mixtral** | Local (Ollama) | Free | ⚠️ Partial | Tool calling less reliable than Llama 3.1. |
+| **claude-sonnet-4-5** | Anthropic API | Paid | ✅ Native | Best quality, but cost accumulates during iterative development. Reserved for Phase 8 (LLM evaluation). |
+| **gpt-4o** | OpenAI API | Paid | ✅ Native | Strong, but adds a second paid dependency with no clear advantage over Claude for this use case. |
+| **gemini-flash** | Google API | Free tier | ✅ | Free tier available, but LangChain integration is less mature than Anthropic's. |
 
 ### Decision Criteria
 
-1. Quality of multi-step analytical reasoning
-2. Accuracy on structured output generation (Markdown tables, JSON-like lists)
-3. Reliability of tool call sequencing
-4. Cost per run (budget matters for a portfolio project)
-5. Native compatibility with deepagents
+1. Zero cost during iterative development (Phases 1–5)
+2. Sufficient tool calling reliability for multi-step agent workflows
+3. Easy swap path to a production LLM without touching tools or analysis logic
+4. Runs locally without internet dependency
 
 ### Decision
 
-**claude-sonnet-4-5** (`claude-sonnet-4-5-20250929`) — best balance of reasoning quality and cost for this use case. It is also the deepagents default, which minimizes configuration friction.
+**Llama 3.1 8B** via **Ollama** (`langchain-ollama`) for development and local testing.
+
+The model is configured in `src/agent/config.py` via the `LLM_PROVIDER` and `LLM_MODEL` environment variables, making the swap to any LangChain-compatible model a one-line config change.
+
+**Planned Phase 8 — LLM Evaluation:** Run the same benchmark queries against Llama 3.1 8B, Llama 3.1 70B, and claude-sonnet-4-5. Compare: report quality, tool call accuracy, overfitting detection rate, and latency. Choose the production LLM based on data.
+
+### Ollama setup
+
+```bash
+# Install Ollama: https://ollama.com/
+ollama pull llama3.1:8b
+
+# Verify
+ollama run llama3.1:8b "What is overfitting in machine learning?"
+```
+
+Add to `.env`:
+```
+LLM_PROVIDER=ollama
+LLM_MODEL=llama3.1:8b
+OLLAMA_BASE_URL=http://localhost:11434
+```
 
 ### Consequences
 
-- **Positive:** No additional LLM provider setup beyond `ANTHROPIC_API_KEY`.
-- **Positive:** Consistent with deepagents documentation and examples.
-- **Consideration:** Token costs accumulate during development — use LangSmith to monitor usage per run.
+- **Positive:** Zero API cost during development — unlimited test runs.
+- **Positive:** No internet dependency for the agent during local development.
+- **Positive:** LLM swap is a single env var change — architecture is not coupled to any specific provider.
+- **Trade-off:** Llama 3.1 8B has lower reasoning quality than claude-sonnet-4-5 on complex analysis. The 70B variant narrows this gap significantly but requires more hardware.
+- **Trade-off:** Ollama must be running locally — adds one more service to the development stack.
+- **Risk:** Tool calling reliability may be lower than with native Anthropic tool use. Mitigated by iterating on the system prompt (Phase 3) and by the planned LLM evaluation phase.
 
 ---
 
