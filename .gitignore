@@ -55,8 +55,7 @@ mlruns_test.db
 mlartifacts/
 
 # ─── Agent workspace & generated data ─────────────────────────────────────────
-data/agent-workspace/
-data/logs/
+data/
 
 # ─── Notebooks ────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
