@@ -9,7 +9,7 @@ For lower-is-better metrics (loss, rmse, mae, mse), the gap is val − train.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 
 from src.mlflow_client.models import RunDetails
 
@@ -17,7 +17,7 @@ from src.mlflow_client.models import RunDetails
 _LOWER_IS_BETTER = {"loss", "rmse", "mae", "mse", "error"}
 
 
-class OverfitSeverity(StrEnum):
+class OverfitSeverity(str, Enum):
     NONE = "none"
     LOW = "low"        # 0.05 ≤ gap < 0.10
     MEDIUM = "medium"  # 0.10 ≤ gap < 0.20

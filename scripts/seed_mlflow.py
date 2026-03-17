@@ -129,8 +129,6 @@ def seed_binary_classification() -> None:
                     metrics[f"{split}_auc"] = float(roc_auc_score(y_s, proba))
                 mlflow.log_metrics(metrics)
 
-            mlflow.sklearn.log_model(model, "model")
-
     print("  ✓ binary-classification: 17 runs")
 
 
@@ -197,7 +195,6 @@ def seed_regression() -> None:
                     f"{split}_r2": float(r2_score(y_s, preds)),
                 })
 
-            mlflow.sklearn.log_model(model, "model")
 
     print("  ✓ regression-v2: 7 runs")
 
@@ -272,7 +269,6 @@ def seed_overfit() -> None:
                 "overfit_gap_accuracy": round(train_acc - val_acc, 4),
                 "overfit_gap_f1": round(train_f1 - val_f1, 4),
             })
-            mlflow.sklearn.log_model(model, "model")
 
     print("  ✓ overfit-test: 5 runs (intentional overfitting gradient)")
 

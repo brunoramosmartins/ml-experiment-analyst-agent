@@ -8,7 +8,7 @@ clear, actionable messages instead of raw stack traces.
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import mlflow
 import pandas as pd
@@ -218,4 +218,4 @@ def _ms_to_dt(ms: int | None) -> datetime | None:
     """Convert millisecond timestamp to UTC datetime."""
     if ms is None:
         return None
-    return datetime.fromtimestamp(ms / 1000, tz=UTC)
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
