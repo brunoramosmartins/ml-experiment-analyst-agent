@@ -6,7 +6,7 @@ that the agent saves via FilesystemBackend.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -34,7 +34,7 @@ def generate_markdown_report(
     Returns:
         Full Markdown string ready to be written to disk.
     """
-    now = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
+    now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     sections: list[str] = []
 
     # ── Header ────────────────────────────────────────────────────────────────

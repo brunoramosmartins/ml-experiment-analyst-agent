@@ -56,8 +56,6 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
     The agent is built on deepagents (LangGraph). It uses a FilesystemBackend
     to persist generated reports to data/agent-workspace/.
 
-    Tools are empty in Phase 1 and will be added in Phase 2.
-
     Args:
         config: Agent configuration. Uses environment variable defaults if None.
 
@@ -71,6 +69,8 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
     from deepagents import create_deep_agent  # type: ignore[import]
     from deepagents.backends import FilesystemBackend  # type: ignore[import]
 
+    from src.tools import ALL_TOOLS
+
     if config is None:
         config = AgentConfig()
 
@@ -82,7 +82,7 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
 
     agent = create_deep_agent(
         model=llm,
-        tools=[],  # Phase 2: custom tools will be registered here
+        tools=ALL_TOOLS,
         system_prompt=system_prompt,
         backend=backend,
     )
