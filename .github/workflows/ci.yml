@@ -75,12 +75,13 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
-      - name: Run unit tests
+      - name: Run unit and edge case tests
         run: |
-          pytest tests/unit/ \
+          pytest tests/unit/ tests/edge_cases/ \
             --cov=src \
             --cov-report=term-missing \
             --cov-report=xml \
+            --cov-fail-under=75 \
             -v
 
       - name: Upload coverage report
