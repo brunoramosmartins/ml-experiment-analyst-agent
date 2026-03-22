@@ -108,14 +108,16 @@ def compare_runs(
     # Summary: which run won how many metrics
     winner_counts: dict[str, int] = {}
     for m in display_metrics:
-        values = {r.run_id: r.metrics[m] for r in runs_data if m in r.metrics}
-        if not values:
+        values_by_run: dict[str, float] = {
+            r.run_id: r.metrics[m] for r in runs_data if m in r.metrics
+        }
+        if not values_by_run:
             continue
         lower_better = any(t in m for t in {"loss", "rmse", "mae", "mse", "error"})
         best_run_id = (
-            min(values, key=values.__getitem__)
+            min(values_by_run, key=values_by_run.__getitem__)
             if lower_better
-            else max(values, key=values.__getitem__)
+            else max(values_by_run, key=values_by_run.__getitem__)
         )
         winner_counts[best_run_id] = winner_counts.get(best_run_id, 0) + 1
 

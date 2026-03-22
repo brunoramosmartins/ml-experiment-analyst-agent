@@ -58,13 +58,14 @@ def preview(text: str, lines: int = 6) -> None:
 # ── Imports das ferramentas ──────────────────────────────────────────────────
 try:
     import mlflow
+
     from src.tools import ALL_TOOLS
-    from src.tools.load_experiment import load_experiment
+    from src.tools.analyze_patterns import analyze_patterns
     from src.tools.compare_runs import compare_runs
     from src.tools.diagnose_run import diagnose_run
-    from src.tools.analyze_patterns import analyze_patterns
-    from src.tools.suggest_next_experiments import suggest_next_experiments
     from src.tools.generate_report import generate_report
+    from src.tools.load_experiment import load_experiment
+    from src.tools.suggest_next_experiments import suggest_next_experiments
 
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 except Exception as e:
@@ -106,7 +107,8 @@ except Exception as e:
 
 try:
     result = load_experiment.invoke({"experiment_name": "experimento-inexistente-xyz"})
-    assert "not found" in result.lower() or "não encontrado" in result.lower() or "no experiment" in result.lower()
+    lower = result.lower()
+    assert "not found" in lower or "não encontrado" in lower or "no experiment" in lower
     ok("Experimento inexistente retorna mensagem de erro amigável")
 except Exception as e:
     fail("load_experiment (not found)", str(e))
@@ -238,7 +240,7 @@ if failed > 0:
     print(f"  {RED}{failed} falha(s) — veja os detalhes acima{RESET}")
 else:
     print(f"\n  {GREEN}{BOLD}Phase 2 validada com sucesso contra MLflow real!{RESET}")
-    print(f"  Pronto para abrir o PR e criar a tag v0.2-tools.")
+    print("  Pronto para abrir o PR e criar a tag v0.2-tools.")
 
 print()
 sys.exit(0 if failed == 0 else 1)

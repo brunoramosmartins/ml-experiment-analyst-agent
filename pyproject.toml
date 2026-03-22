@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ml-experiment-analyst-agent"
-version = "0.1.0"
+version = "0.3.0"
 description = "An autonomous ML experiment analysis agent built with deepagents + LangGraph"
 readme = "README.md"
 license = { file = "LICENSE" }

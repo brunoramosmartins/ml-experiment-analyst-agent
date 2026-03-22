@@ -84,6 +84,7 @@ ML Experiment Analyst Agent (deepagents / LangGraph)
 | `analyze_patterns` | Correlation between hyperparameters and metrics | Find which parameters matter most |
 | `suggest_next_experiments` | Concrete next-run configurations with justification | Plan the next iteration |
 | `generate_report` | Full Markdown report saved to disk | Final deliverable |
+| `web_search` | Search the web for ML techniques and papers (optional) | When external context is needed |
 
 ---
 
@@ -92,7 +93,7 @@ ML Experiment Analyst Agent (deepagents / LangGraph)
 ```
 src/
 ├── agent/          # Agent builder, config, system prompt
-├── tools/          # 6 custom LangChain tools
+├── tools/          # 7 custom LangChain tools (6 core + web search)
 ├── mlflow_client/  # MLflow access layer
 ├── analysis/       # Pure analysis functions (metrics, overfitting, patterns)
 ├── report/         # Markdown report generator
@@ -115,5 +116,8 @@ scripts/
 
 - [Architecture Decision Records](docs/architecture-decisions.md)
 - [Setup Guide](docs/SETUP.md)
+- [Tools Reference](docs/tools-reference.md)
+- [Prompt Engineering Log](docs/prompt-engineering-log.md)
+- [Demo Experiments](docs/demo-experiments.md)
 - [Contributing](CONTRIBUTING.md)
 - [deepagents](https://pypi.org/project/deepagents/) · [LangSmith](https://smith.langchain.com/) · [MLflow](https://mlflow.org/)

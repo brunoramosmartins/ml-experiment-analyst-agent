@@ -65,8 +65,12 @@ def seed_binary_classification() -> None:
         n_classes=2,
         random_state=42,
     )
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42,
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train, y_train, test_size=0.2, random_state=42,
+    )
 
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
@@ -145,13 +149,20 @@ def seed_regression() -> None:
     df = pd.DataFrame(X_raw, columns=[f"feature_{i}" for i in range(15)])
 
     run_configs = [
-        {"name": "baseline-5-features",       "features": list(range(5)),  "alpha": 1.0,   "engineering": "none"},
-        {"name": "extended-10-features",       "features": list(range(10)), "alpha": 1.0,   "engineering": "none"},
-        {"name": "all-15-features",            "features": list(range(15)), "alpha": 1.0,   "engineering": "none"},
-        {"name": "polynomial-8-features",      "features": list(range(8)),  "alpha": 0.1,   "engineering": "polynomial"},
-        {"name": "high-regularization",        "features": list(range(15)), "alpha": 100.0, "engineering": "none"},
-        {"name": "optimal-regularization",     "features": list(range(15)), "alpha": 10.0,  "engineering": "none"},
-        {"name": "poly-with-regularization",   "features": list(range(8)),  "alpha": 10.0,  "engineering": "polynomial"},
+        {"name": "baseline-5-features", "features": list(range(5)),
+         "alpha": 1.0, "engineering": "none"},
+        {"name": "extended-10-features", "features": list(range(10)),
+         "alpha": 1.0, "engineering": "none"},
+        {"name": "all-15-features", "features": list(range(15)),
+         "alpha": 1.0, "engineering": "none"},
+        {"name": "polynomial-8-features", "features": list(range(8)),
+         "alpha": 0.1, "engineering": "polynomial"},
+        {"name": "high-regularization", "features": list(range(15)),
+         "alpha": 100.0, "engineering": "none"},
+        {"name": "optimal-regularization", "features": list(range(15)),
+         "alpha": 10.0, "engineering": "none"},
+        {"name": "poly-with-regularization", "features": list(range(8)),
+         "alpha": 10.0, "engineering": "polynomial"},
     ]
 
     for cfg in run_configs:
@@ -160,8 +171,12 @@ def seed_regression() -> None:
             if cfg["engineering"] == "polynomial":
                 X = np.column_stack([X, X ** 2])
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42,
+            )
+            X_train, X_val, y_train, y_val = train_test_split(
+                X_train, y_train, test_size=0.2, random_state=42,
+            )
 
             scaler = StandardScaler()
             X_train = scaler.fit_transform(X_train)
@@ -250,7 +265,11 @@ def seed_overfit() -> None:
                 "expected_overfit_level": cfg["gap_level"],
                 "dataset": "synthetic-overfit",
                 "phase": "overfitting-study",
-                "warning": "intentional_overfit" if cfg["gap_level"] in ("high", "critical") else "none",
+                "warning": (
+                    "intentional_overfit"
+                    if cfg["gap_level"] in ("high", "critical")
+                    else "none"
+                ),
             })
             mlflow.log_params({
                 "model_type": "gradient_boosting",

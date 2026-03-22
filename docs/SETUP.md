@@ -92,7 +92,7 @@ Open `http://localhost:5000` to confirm.
 make run-demo
 ```
 
-> `scripts/run_demo.py` will be available after Phase 3.
+This runs 3 demonstration queries against the agent and generates reports in `data/agent-workspace/reports/`.
 
 ---
 
@@ -106,7 +106,7 @@ make typecheck     # Type check (mypy)
 make mlflow-up     # Start Docker stack
 make mlflow-down   # Stop Docker stack
 make seed-mlflow   # Populate MLflow with demo data
-make run-demo      # Run agent demo (Phase 3+)
+make run-demo      # Run 3 agent demo queries
 make run-dashboard # Start Streamlit dashboard (Phase 4+)
 ```
 
