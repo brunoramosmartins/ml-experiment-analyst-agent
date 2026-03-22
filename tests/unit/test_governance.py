@@ -45,9 +45,7 @@ def _read_events(log_path: Path) -> list[dict]:
 # ─── on_tool_start ───────────────────────────────────────────────────────────
 
 
-def test_on_tool_start_creates_log_file(
-    handler: GovernanceCallbackHandler, tmp_path: Path
-) -> None:
+def test_on_tool_start_creates_log_file(handler: GovernanceCallbackHandler, tmp_path: Path) -> None:
     handler.on_tool_start(
         {"name": "load_experiment"},
         '{"experiment_name": "test"}',
@@ -63,9 +61,7 @@ def test_on_tool_start_creates_log_file(
 # ─── on_tool_end ─────────────────────────────────────────────────────────────
 
 
-def test_on_tool_end_logs_duration(
-    handler: GovernanceCallbackHandler, tmp_path: Path
-) -> None:
+def test_on_tool_end_logs_duration(handler: GovernanceCallbackHandler, tmp_path: Path) -> None:
     rid = uuid.uuid4()
     handler.on_tool_start({"name": "compare_runs"}, "{}", run_id=rid)
     handler.on_tool_end("Results: ...", run_id=rid)
@@ -156,9 +152,7 @@ def test_successful_tool_resets_failure_count(
 def test_log_entry_schema_has_all_fields(
     handler: GovernanceCallbackHandler, tmp_path: Path
 ) -> None:
-    handler.on_tool_start(
-        {"name": "diagnose_run"}, '{"run_id": "abc"}', run_id=uuid.uuid4()
-    )
+    handler.on_tool_start({"name": "diagnose_run"}, '{"run_id": "abc"}', run_id=uuid.uuid4())
 
     log_file = _find_log_file(tmp_path)
     events = _read_events(log_file)

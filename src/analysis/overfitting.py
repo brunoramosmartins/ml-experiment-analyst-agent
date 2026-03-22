@@ -19,6 +19,7 @@ else:
     class StrEnum(str, Enum):  # type: ignore[no-redef]  # noqa: UP042
         """Backport for Python < 3.11."""
 
+
 from src.mlflow_client.models import RunDetails
 
 # Metrics where *lower* values are better (gap = val − train)
@@ -27,9 +28,9 @@ _LOWER_IS_BETTER = {"loss", "rmse", "mae", "mse", "error"}
 
 class OverfitSeverity(StrEnum):
     NONE = "none"
-    LOW = "low"        # 0.05 ≤ gap < 0.10
+    LOW = "low"  # 0.05 ≤ gap < 0.10
     MEDIUM = "medium"  # 0.10 ≤ gap < 0.20
-    HIGH = "high"      # gap ≥ 0.20
+    HIGH = "high"  # gap ≥ 0.20
 
 
 @dataclass
@@ -156,6 +157,7 @@ def detect_overfitting_trend(
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _gap_to_severity(gap: float, threshold: float) -> OverfitSeverity:
     if gap < threshold:

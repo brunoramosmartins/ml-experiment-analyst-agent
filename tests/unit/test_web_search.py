@@ -45,9 +45,7 @@ def test_web_search_returns_formatted_results() -> None:
         patch.dict("os.environ", {"TAVILY_API_KEY": "test-key"}),
         patch.dict("sys.modules", {"tavily": MagicMock(TavilyClient=mock_tavily_cls)}),
     ):
-        result = _web_search_mod.web_search.invoke(
-            {"query": "gradient boosting overfitting"}
-        )
+        result = _web_search_mod.web_search.invoke({"query": "gradient boosting overfitting"})
 
     assert "Gradient Boosting Guide" in result
     assert "Overfitting Solutions" in result
@@ -83,9 +81,7 @@ def test_web_search_clamps_max_results() -> None:
         patch.dict("os.environ", {"TAVILY_API_KEY": "test-key"}),
         patch.dict("sys.modules", {"tavily": MagicMock(TavilyClient=mock_tavily_cls)}),
     ):
-        _web_search_mod.web_search.invoke(
-            {"query": "test", "max_results": 10}
-        )
+        _web_search_mod.web_search.invoke({"query": "test", "max_results": 10})
 
     # Should have been clamped to 5
     mock_client.search.assert_called_once_with("test", max_results=5)

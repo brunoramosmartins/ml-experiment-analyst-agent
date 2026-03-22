@@ -76,12 +76,12 @@ def list_runs(log_dir: Path) -> pd.DataFrame:
         date_str = jsonl_path.parent.name
         run_id = jsonl_path.stem
         tool_ends = [e for e in events if e.get("event_type") == "tool_end"]
-        tool_errors = [
-            e for e in events if e.get("event_type") == "tool_error"
-        ]
-        total_duration = sum(
-            e.get("duration_ms", 0) or 0 for e in tool_ends
-        )
+        tool_errors = [e for e in events if e.get("event_type") == "tool_error"]
+        # Use max chain_end duration as total run time (outermost chain)
+        chain_ends = [e for e in events if e.get("event_type") == "chain_end"]
+        chain_durations = [e.get("duration_ms", 0) or 0 for e in chain_ends]
+        tool_duration = sum(e.get("duration_ms", 0) or 0 for e in tool_ends)
+        total_duration = max(chain_durations) if chain_durations else tool_duration
         total_tokens = 0
         for e in events:
             tok = e.get("tokens")
@@ -145,9 +145,7 @@ def compute_tool_analytics(log_dir: Path) -> pd.DataFrame:
         return pd.DataFrame(columns=_ANALYTICS_COLUMNS)
 
     tool_ends = [e for e in all_events if e.get("event_type") == "tool_end"]
-    tool_errors = [
-        e for e in all_events if e.get("event_type") == "tool_error"
-    ]
+    tool_errors = [e for e in all_events if e.get("event_type") == "tool_error"]
 
     if not tool_ends and not tool_errors:
         return pd.DataFrame(columns=_ANALYTICS_COLUMNS)
@@ -157,7 +155,7 @@ def compute_tool_analytics(log_dir: Path) -> pd.DataFrame:
 
     # Build per-tool stats from tool_end events
     stats: list[dict] = []
-    all_tool_names = set()
+    all_tool_names: set[str] = set()
     if not df_ends.empty and "tool_name" in df_ends.columns:
         all_tool_names.update(df_ends["tool_name"].dropna().unique())
     if not df_errors.empty and "tool_name" in df_errors.columns:
@@ -189,18 +187,12 @@ def compute_tool_analytics(log_dir: Path) -> pd.DataFrame:
             {
                 "tool_name": name,
                 "call_count": call_count,
-                "avg_duration_ms": (
-                    round(durations.mean(), 1) if len(durations) > 0 else 0
-                ),
+                "avg_duration_ms": (round(durations.mean(), 1) if len(durations) > 0 else 0),
                 "p95_duration_ms": (
-                    round(durations.quantile(0.95), 1)
-                    if len(durations) > 0
-                    else 0
+                    round(durations.quantile(0.95), 1) if len(durations) > 0 else 0
                 ),
                 "error_count": error_count,
-                "error_rate": (
-                    round(error_count / total, 3) if total > 0 else 0
-                ),
+                "error_rate": (round(error_count / total, 3) if total > 0 else 0),
             }
         )
 

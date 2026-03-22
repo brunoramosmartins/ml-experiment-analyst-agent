@@ -15,7 +15,8 @@ pytestmark = pytest.mark.integration
 
 
 def test_mlflow_client_get_experiment(
-    mlflow_client, seeded_experiment  # type: ignore[no-untyped-def]
+    mlflow_client,
+    seeded_experiment,  # type: ignore[no-untyped-def]
 ) -> None:
     exp_name, exp_id, _ = seeded_experiment
     exp = mlflow_client.get_experiment(exp_name)
@@ -24,7 +25,8 @@ def test_mlflow_client_get_experiment(
 
 
 def test_mlflow_client_list_runs(
-    mlflow_client, seeded_experiment  # type: ignore[no-untyped-def]
+    mlflow_client,
+    seeded_experiment,  # type: ignore[no-untyped-def]
 ) -> None:
     _, exp_id, run_ids = seeded_experiment
     runs = mlflow_client.list_runs(exp_id)
@@ -34,7 +36,8 @@ def test_mlflow_client_list_runs(
 
 
 def test_load_experiment_tool_e2e(
-    mlflow_available, seeded_experiment  # type: ignore[no-untyped-def]
+    mlflow_available,
+    seeded_experiment,  # type: ignore[no-untyped-def]
 ) -> None:
     exp_name, _, _ = seeded_experiment
     mod = importlib.import_module("src.tools.load_experiment")
@@ -44,19 +47,20 @@ def test_load_experiment_tool_e2e(
 
 
 def test_compare_runs_tool_e2e(
-    mlflow_available, seeded_experiment  # type: ignore[no-untyped-def]
+    mlflow_available,
+    seeded_experiment,  # type: ignore[no-untyped-def]
 ) -> None:
     exp_name, _, run_ids = seeded_experiment
     mod = importlib.import_module("src.tools.compare_runs")
-    result = mod.compare_runs.invoke(
-        {"run_ids": run_ids[:2], "experiment_name": exp_name}
-    )
+    result = mod.compare_runs.invoke({"run_ids": run_ids[:2], "experiment_name": exp_name})
     assert "val_accuracy" in result
     assert "ERROR" not in result
 
 
 def test_generate_report_tool_e2e(
-    mlflow_available, seeded_experiment, tmp_path  # type: ignore[no-untyped-def]
+    mlflow_available,
+    seeded_experiment,
+    tmp_path,  # type: ignore[no-untyped-def]
 ) -> None:
     exp_name, _, _ = seeded_experiment
     mod = importlib.import_module("src.tools.generate_report")

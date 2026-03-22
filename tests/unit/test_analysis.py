@@ -16,6 +16,7 @@ from src.mlflow_client.models import RunDetails
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _run(
     run_id: str,
     metrics: dict,
@@ -33,6 +34,7 @@ def _run(
 
 
 # ─── metrics.py ───────────────────────────────────────────────────────────────
+
 
 class TestCompareMetrics:
     def test_returns_dataframe_with_all_metrics(self) -> None:
@@ -97,6 +99,7 @@ class TestMetricDelta:
 
 # ─── overfitting.py ───────────────────────────────────────────────────────────
 
+
 class TestDetectOverfitting:
     def test_detects_high_overfit(self) -> None:
         run = _run("a", {"train_accuracy": 0.99, "val_accuracy": 0.55})
@@ -128,8 +131,9 @@ class TestDetectOverfitting:
         assert report.is_overfit
 
     def test_affected_metrics_populated(self) -> None:
-        run = _run("a", {"train_accuracy": 0.99, "val_accuracy": 0.60,
-                          "train_f1": 0.98, "val_f1": 0.59})
+        run = _run(
+            "a", {"train_accuracy": 0.99, "val_accuracy": 0.60, "train_f1": 0.98, "val_f1": 0.59}
+        )
         report = detect_overfitting(run)
         assert len(report.affected_metrics) > 0
 
@@ -150,6 +154,7 @@ class TestDetectOverfittingTrend:
 
 
 # ─── patterns.py ──────────────────────────────────────────────────────────────
+
 
 class TestCorrelateParamsMetrics:
     def test_finds_positive_correlation(self) -> None:
@@ -193,6 +198,7 @@ class TestCorrelateParamsMetrics:
 
 
 # ─── suggestions.py ───────────────────────────────────────────────────────────
+
 
 class TestSuggestNextExperiments:
     def test_returns_suggestions(self) -> None:

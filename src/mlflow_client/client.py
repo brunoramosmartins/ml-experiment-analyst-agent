@@ -32,9 +32,7 @@ class MLflowAnalystClient:
 
     def __init__(self, tracking_uri: str | None = None) -> None:
         self._tracking_uri: str = (
-            tracking_uri
-            or os.getenv("MLFLOW_TRACKING_URI")
-            or "http://localhost:5000"
+            tracking_uri or os.getenv("MLFLOW_TRACKING_URI") or "http://localhost:5000"
         )
         mlflow.set_tracking_uri(self._tracking_uri)
         self._client = mlflow.MlflowClient(tracking_uri=self._tracking_uri)
@@ -130,13 +128,10 @@ class MLflowAnalystClient:
             ]
         except MlflowException as exc:
             raise MLflowClientError(
-                f"Could not list runs for experiment '{experiment_id}'. "
-                f"MLflow error: {exc}"
+                f"Could not list runs for experiment '{experiment_id}'. MLflow error: {exc}"
             ) from exc
         except Exception as exc:
-            raise MLflowClientError(
-                f"Unexpected error listing runs: {exc}"
-            ) from exc
+            raise MLflowClientError(f"Unexpected error listing runs: {exc}") from exc
 
     def get_run_details(self, run_id: str) -> RunDetails:
         """Fetch full details of a run including params, metrics, and tags.
@@ -154,13 +149,10 @@ class MLflowAnalystClient:
             run = self._client.get_run(run_id)
         except MlflowException as exc:
             raise MLflowClientError(
-                f"Run '{run_id}' not found. Verify the run ID is correct. "
-                f"Details: {exc}"
+                f"Run '{run_id}' not found. Verify the run ID is correct. Details: {exc}"
             ) from exc
         except Exception as exc:
-            raise MLflowClientError(
-                f"Could not fetch run '{run_id}': {exc}"
-            ) from exc
+            raise MLflowClientError(f"Could not fetch run '{run_id}': {exc}") from exc
 
         metrics = {k: float(v) for k, v in run.data.metrics.items()}
         if not metrics:
@@ -213,6 +205,7 @@ class MLflowAnalystClient:
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _ms_to_dt(ms: int | None) -> datetime | None:
     """Convert millisecond timestamp to UTC datetime."""

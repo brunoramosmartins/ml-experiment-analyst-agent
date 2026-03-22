@@ -76,9 +76,7 @@ def test_load_system_prompt_fallback() -> None:
     with patch("src.agent.builder.Path") as mock_path_cls:
         mock_file = MagicMock()
         mock_file.parent.__truediv__ = MagicMock(
-            return_value=MagicMock(
-                __truediv__=MagicMock(return_value=fake_prompt_path)
-            )
+            return_value=MagicMock(__truediv__=MagicMock(return_value=fake_prompt_path))
         )
         mock_path_cls.return_value = mock_file
 
@@ -154,9 +152,7 @@ def test_create_analyst_agent_with_hitl_tools(tmp_path: Path) -> None:
             llm_provider="ollama",
             workspace_path=tmp_path / "ws",
         )
-        builder_mod.create_analyst_agent(
-            config, hitl_tools=["generate_report"]
-        )
+        builder_mod.create_analyst_agent(config, hitl_tools=["generate_report"])
 
         call_kwargs = mock_create.call_args
         interrupt_on = call_kwargs.kwargs.get("interrupt_on")
@@ -182,9 +178,7 @@ def test_invoke_with_governance_attaches_callback(tmp_path: Path) -> None:
     call_args = mock_agent.invoke.call_args
     invoke_config = call_args[0][1] if len(call_args[0]) > 1 else call_args[1]
     callbacks = invoke_config.get("callbacks", [])
-    assert any(
-        isinstance(cb, GovernanceCallbackHandler) for cb in callbacks
-    )
+    assert any(isinstance(cb, GovernanceCallbackHandler) for cb in callbacks)
 
 
 def test_invoke_with_governance_timeout(tmp_path: Path) -> None:

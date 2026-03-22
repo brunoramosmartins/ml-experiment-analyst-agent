@@ -59,6 +59,7 @@ class GovernanceCallbackHandler(BaseCallbackHandler):
         self.max_consecutive_failures = max_consecutive_failures
 
         self._tool_start_times: dict[str, float] = {}
+        self._chain_start_times: dict[str, float] = {}
         self._total_tokens: int = 0
         self._consecutive_failures: int = 0
 
@@ -79,7 +80,7 @@ class GovernanceCallbackHandler(BaseCallbackHandler):
         self._tool_start_times[call_id] = time.monotonic()
         self._write_event(
             event_type="tool_start",
-            tool_name=serialized.get("name", "unknown"),
+            tool_name=(serialized.get("name", "unknown") if serialized else "unknown"),
             input_summary=_truncate(input_str, 200),
         )
 
@@ -92,9 +93,7 @@ class GovernanceCallbackHandler(BaseCallbackHandler):
     ) -> None:
         call_id = str(run_id) if run_id else ""
         start = self._tool_start_times.pop(call_id, None)
-        duration_ms = (
-            round((time.monotonic() - start) * 1000, 1) if start else None
-        )
+        duration_ms = round((time.monotonic() - start) * 1000, 1) if start else None
         self._consecutive_failures = 0
         self._write_event(
             event_type="tool_end",
@@ -116,8 +115,7 @@ class GovernanceCallbackHandler(BaseCallbackHandler):
         )
         if self._consecutive_failures >= self.max_consecutive_failures:
             raise GovernanceLimitError(
-                f"Consecutive tool failures reached limit "
-                f"({self.max_consecutive_failures})"
+                f"Consecutive tool failures reached limit ({self.max_consecutive_failures})"
             )
 
     # ─── LLM hooks ──────────────────────────────────────────────────────────
@@ -145,29 +143,41 @@ class GovernanceCallbackHandler(BaseCallbackHandler):
 
     def on_chain_start(
         self,
-        serialized: dict[str, Any],
-        inputs: dict[str, Any],
+        serialized: dict[str, Any] | None,
+        inputs: dict[str, Any] | None,
         *,
         run_id: uuid.UUID | None = None,
         **kwargs: Any,
     ) -> None:
-        chain_name = serialized.get("id", ["unknown"])[-1]
+        call_id = str(run_id) if run_id else uuid.uuid4().hex
+        self._chain_start_times[call_id] = time.monotonic()
+        chain_name = "unknown"
+        if serialized and isinstance(serialized, dict):
+            ids = serialized.get("id")
+            if isinstance(ids, list) and ids:
+                chain_name = str(ids[-1])
+            else:
+                chain_name = serialized.get("name", "unknown")
         self._write_event(
             event_type="chain_start",
             tool_name=chain_name,
-            input_summary=_truncate(str(inputs), 200),
+            input_summary=_truncate(str(inputs or ""), 200),
         )
 
     def on_chain_end(
         self,
-        outputs: dict[str, Any],
+        outputs: dict[str, Any] | None,
         *,
         run_id: uuid.UUID | None = None,
         **kwargs: Any,
     ) -> None:
+        call_id = str(run_id) if run_id else ""
+        start = self._chain_start_times.pop(call_id, None)
+        duration_ms = round((time.monotonic() - start) * 1000, 1) if start else None
         self._write_event(
             event_type="chain_end",
-            output_summary=_truncate(str(outputs), 500),
+            output_summary=_truncate(str(outputs or ""), 500),
+            duration_ms=duration_ms,
         )
 
     # ─── Internal ────────────────────────────────────────────────────────────
@@ -221,13 +231,48 @@ def _truncate(text: str, max_len: int) -> str:
 
 
 def _extract_token_usage(response: LLMResult) -> dict[str, int] | None:
-    """Extract token usage from an LLMResult, if available."""
+    """Extract token usage from an LLMResult, if available.
+
+    Handles multiple formats:
+    - OpenAI-style: ``llm_output.token_usage.{prompt_tokens, completion_tokens, total_tokens}``
+    - Ollama-style: ``generation_info.{prompt_eval_count, eval_count}``
+    - LangChain usage_metadata on AIMessage: ``message.usage_metadata``
+    """
+    # 1) Try standard llm_output (OpenAI, Anthropic)
     llm_output = response.llm_output or {}
     usage = llm_output.get("token_usage") or llm_output.get("usage")
-    if not usage:
-        return None
-    return {
-        "prompt": usage.get("prompt_tokens", 0),
-        "completion": usage.get("completion_tokens", 0),
-        "total": usage.get("total_tokens", 0),
-    }
+    if usage:
+        return {
+            "prompt": usage.get("prompt_tokens", 0),
+            "completion": usage.get("completion_tokens", 0),
+            "total": usage.get("total_tokens", 0),
+        }
+
+    # 2) Try generation_info (Ollama puts counts here)
+    try:
+        gen_info = response.generations[0][0].generation_info or {}
+        prompt_tokens = gen_info.get("prompt_eval_count", 0)
+        completion_tokens = gen_info.get("eval_count", 0)
+        if prompt_tokens or completion_tokens:
+            return {
+                "prompt": prompt_tokens,
+                "completion": completion_tokens,
+                "total": prompt_tokens + completion_tokens,
+            }
+    except (IndexError, AttributeError):
+        pass
+
+    # 3) Try usage_metadata on the AIMessage (newer LangChain)
+    try:
+        message = response.generations[0][0].message
+        meta = getattr(message, "usage_metadata", None)
+        if meta and isinstance(meta, dict):
+            return {
+                "prompt": meta.get("input_tokens", 0),
+                "completion": meta.get("output_tokens", 0),
+                "total": meta.get("total_tokens", 0),
+            }
+    except (IndexError, AttributeError):
+        pass
+
+    return None
