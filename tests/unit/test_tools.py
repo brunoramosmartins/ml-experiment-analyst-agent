@@ -12,12 +12,9 @@ each submodule directly and using patch.object on the module reference.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
-
 import importlib
+from pathlib import Path
+from unittest.mock import patch
 
 from src.mlflow_client.models import ExperimentInfo, RunDetails, RunInfo
 
@@ -288,7 +285,7 @@ class TestAnalyzePatterns:
         ]
         return [
             _make_run(f"run-{i:03d}", f"run-{i}", params=c, metrics=m)
-            for i, (c, m) in enumerate(zip(configs, metrics_list))
+            for i, (c, m) in enumerate(zip(configs, metrics_list, strict=True))
         ]
 
     def test_happy_path(self):
@@ -355,9 +352,14 @@ class TestSuggestNextExperiments:
         from src.tools.suggest_next_experiments import suggest_next_experiments
 
         runs = [
-            _make_run(f"r{i}", f"run-{i}",
-                      params={"learning_rate": str(0.001 * (i + 1)), "n_estimators": str(50 * (i + 1))},
-                      metrics={"val_accuracy": 0.70 + i * 0.03})
+            _make_run(
+                f"r{i}", f"run-{i}",
+                params={
+                    "learning_rate": str(0.001 * (i + 1)),
+                    "n_estimators": str(50 * (i + 1)),
+                },
+                metrics={"val_accuracy": 0.70 + i * 0.03},
+            )
             for i in range(5)
         ]
         run_infos = [_make_run_info(r.run_id) for r in runs]
@@ -515,7 +517,7 @@ class TestToolsInit:
     def test_all_tools_exported(self):
         from src.tools import ALL_TOOLS
 
-        assert len(ALL_TOOLS) == 6
+        assert len(ALL_TOOLS) >= 6  # 6 core + optional web_search
         tool_names = {t.name for t in ALL_TOOLS}
         assert "load_experiment" in tool_names
         assert "compare_runs" in tool_names

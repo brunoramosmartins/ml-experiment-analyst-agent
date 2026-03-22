@@ -10,12 +10,15 @@ in your .env to switch models without touching this file.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
 
 from src.agent.config import AgentConfig
+
+logger = logging.getLogger(__name__)
 
 
 def _build_llm(config: AgentConfig) -> BaseChatModel:
@@ -68,8 +71,11 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
     """
     from deepagents import create_deep_agent  # type: ignore[import]
     from deepagents.backends import FilesystemBackend  # type: ignore[import]
+    from dotenv import load_dotenv
 
     from src.tools import ALL_TOOLS
+
+    load_dotenv()
 
     if config is None:
         config = AgentConfig()
@@ -85,6 +91,14 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
         tools=ALL_TOOLS,
         system_prompt=system_prompt,
         backend=backend,
+    )
+
+    logger.info(
+        "Agent created — provider=%s, model=%s, tools=%d, workspace=%s",
+        config.llm_provider,
+        config.llm_model,
+        len(ALL_TOOLS),
+        config.workspace_path,
     )
 
     return agent
