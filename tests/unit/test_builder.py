@@ -131,6 +131,82 @@ def test_create_analyst_agent_passes_tools_and_prompt(tmp_path: Path) -> None:
         assert "ML Experiment Analyst" in str(prompt)
 
 
+def test_create_analyst_agent_with_hitl_tools(tmp_path: Path) -> None:
+    mock_create = MagicMock(return_value=MagicMock())
+    mock_backend_cls = MagicMock()
+
+    with patch.dict(
+        "sys.modules",
+        {
+            "deepagents": MagicMock(create_deep_agent=mock_create),
+            "deepagents.backends": MagicMock(FilesystemBackend=mock_backend_cls),
+            "dotenv": MagicMock(),
+            "langchain_ollama": MagicMock(),
+        },
+    ):
+        from importlib import reload
+
+        import src.agent.builder as builder_mod
+
+        reload(builder_mod)
+
+        config = AgentConfig(
+            llm_provider="ollama",
+            workspace_path=tmp_path / "ws",
+        )
+        builder_mod.create_analyst_agent(
+            config, hitl_tools=["generate_report"]
+        )
+
+        call_kwargs = mock_create.call_args
+        interrupt_on = call_kwargs.kwargs.get("interrupt_on")
+        assert interrupt_on is not None
+        assert "generate_report" in interrupt_on
+        assert interrupt_on["generate_report"] is True
+
+
+def test_invoke_with_governance_attaches_callback(tmp_path: Path) -> None:
+    from src.agent.builder import invoke_with_governance
+    from src.observability.governance import GovernanceCallbackHandler
+
+    mock_agent = MagicMock()
+    mock_agent.invoke.return_value = {"messages": []}
+
+    config = AgentConfig(
+        trace_log_dir=tmp_path / "traces",
+        execution_timeout_seconds=30,
+    )
+    invoke_with_governance(mock_agent, "test query", config=config)
+
+    mock_agent.invoke.assert_called_once()
+    call_args = mock_agent.invoke.call_args
+    invoke_config = call_args[0][1] if len(call_args[0]) > 1 else call_args[1]
+    callbacks = invoke_config.get("callbacks", [])
+    assert any(
+        isinstance(cb, GovernanceCallbackHandler) for cb in callbacks
+    )
+
+
+def test_invoke_with_governance_timeout(tmp_path: Path) -> None:
+    import time
+
+    from src.agent.builder import invoke_with_governance
+
+    def slow_invoke(*args: object, **kwargs: object) -> dict:  # type: ignore[type-arg]
+        time.sleep(5)
+        return {"messages": []}
+
+    mock_agent = MagicMock()
+    mock_agent.invoke.side_effect = slow_invoke
+
+    config = AgentConfig(
+        trace_log_dir=tmp_path / "traces",
+        execution_timeout_seconds=1,
+    )
+    with pytest.raises(TimeoutError, match="timed out"):
+        invoke_with_governance(mock_agent, "test", config=config)
+
+
 def test_create_analyst_agent_creates_workspace(tmp_path: Path) -> None:
     workspace = tmp_path / "new-workspace"
     assert not workspace.exists()

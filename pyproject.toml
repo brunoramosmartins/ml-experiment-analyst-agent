@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ml-experiment-analyst-agent"
-version = "0.4.0"
+version = "0.5.0"
 description = "An autonomous ML experiment analysis agent built with deepagents + LangGraph"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -61,12 +61,16 @@ ignore_missing_imports = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-v"
+markers = [
+    "integration: requires external services (MLflow, Docker)",
+]
 
 [tool.coverage.run]
 source = ["src"]
 omit = ["tests/*", "scripts/*"]
 
 [tool.coverage.report]
+fail_under = 75
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

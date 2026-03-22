@@ -1,6 +1,7 @@
 # ML Experiment Analyst Agent
 
 [![CI](https://github.com/brunoramosmartins/ml-experiment-analyst-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/brunoramosmartins/ml-experiment-analyst-agent/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/brunoramosmartins/ml-experiment-analyst-agent/branch/main/graph/badge.svg)](https://codecov.io/gh/brunoramosmartins/ml-experiment-analyst-agent)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 

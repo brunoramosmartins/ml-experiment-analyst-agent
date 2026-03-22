@@ -152,3 +152,36 @@ def test_compare_runs_empty_returns_empty_df(client: MLflowAnalystClient) -> Non
     df = client.compare_runs([])
     assert isinstance(df, pd.DataFrame)
     assert df.empty
+
+
+# ─── Additional edge cases ───────────────────────────────────────────────────
+
+
+def test_list_runs_mlflow_exception(client: MLflowAnalystClient) -> None:
+    with patch(
+        "src.mlflow_client.client.mlflow.search_runs",
+        side_effect=Exception("connection refused"),
+    ):
+        with pytest.raises(MLflowClientError, match="connection refused"):
+            client.list_runs("1")
+
+
+def test_compare_runs_partial_metrics(client: MLflowAnalystClient) -> None:
+    import pandas as pd
+
+    run_a = RunDetails(
+        run_id="a", experiment_id="1", run_name="run-a", status="FINISHED",
+        params={}, metrics={"val_accuracy": 0.9, "val_loss": 0.1},
+    )
+    run_b = RunDetails(
+        run_id="b", experiment_id="1", run_name="run-b", status="FINISHED",
+        params={}, metrics={"val_accuracy": 0.8},  # no val_loss
+    )
+
+    client.get_run_details = MagicMock(side_effect=[run_a, run_b])
+    df = client.compare_runs(["a", "b"])
+
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 2
+    # run_b should have NaN for val_loss
+    assert pd.isna(df.loc[df["run_name"] == "run-b", "val_loss"].iloc[0])
