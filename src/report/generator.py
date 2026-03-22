@@ -54,8 +54,7 @@ def generate_markdown_report(
         df = compare_metrics(analysis.runs)
         if analysis.target_metric in df.columns:
             is_lower = any(
-                t in analysis.target_metric
-                for t in {"loss", "rmse", "mae", "mse", "error"}
+                t in analysis.target_metric for t in {"loss", "rmse", "mae", "mse", "error"}
             )
             df = rank_runs(df, analysis.target_metric, ascending=is_lower)
 
@@ -76,9 +75,7 @@ def generate_markdown_report(
                 worst = max(r.gaps, key=lambda g: g.gap, default=None)
                 gap_str = f"{worst.gap:.3f} ({worst.metric_base})" if worst else "—"
                 name = r.run_name or r.run_id
-                rows.append(
-                    f"| `{name}` | {icon} {r.severity.value} | {gap_str} | {r.message} |"
-                )
+                rows.append(f"| `{name}` | {icon} {r.severity.value} | {gap_str} | {r.message} |")
             sections.append("\n".join(rows))
         else:
             sections.append("✅ No overfitting detected in any analyzed run.")
@@ -94,9 +91,7 @@ def generate_markdown_report(
             "|---|---|---|---|",
         ]
         for p in report.top_params[:10]:
-            rows.append(
-                f"| `{p.param}` | {p.correlation:.3f} | {p.direction} | {p.n_runs} |"
-            )
+            rows.append(f"| `{p.param}` | {p.correlation:.3f} | {p.direction} | {p.n_runs} |")
         sections.append("\n".join(rows))
         sections.append(f"_{report.message}_")
     elif report:
@@ -133,6 +128,7 @@ def generate_markdown_report(
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _df_to_markdown(df: pd.DataFrame) -> str:
     """Convert a DataFrame to a Markdown table string."""

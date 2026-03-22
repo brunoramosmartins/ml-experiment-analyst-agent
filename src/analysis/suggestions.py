@@ -20,10 +20,10 @@ class ExperimentSuggestion:
     """A concrete suggestion for the next experiment run."""
 
     title: str
-    params: dict[str, str]     # Suggested parameter values
-    justification: str          # Why this configuration is suggested
-    hypothesis: str             # What we expect to learn from this run
-    priority: int = 1           # 1 = highest priority
+    params: dict[str, str]  # Suggested parameter values
+    justification: str  # Why this configuration is suggested
+    hypothesis: str  # What we expect to learn from this run
+    priority: int = 1  # 1 = highest priority
 
 
 @dataclass
@@ -94,9 +94,7 @@ def suggest_next_experiments(
     # ── Suggestion 2: based on top positive correlation ───────────────────────
     report = analysis.correlation_report
     if report and report.top_params:
-        top = next(
-            (p for p in report.top_params if p.direction == "positive"), None
-        )
+        top = next((p for p in report.top_params if p.direction == "positive"), None)
         if top:
             suggestions.append(
                 ExperimentSuggestion(
@@ -117,9 +115,7 @@ def suggest_next_experiments(
 
     # ── Suggestion 3: based on top negative correlation ───────────────────────
     if report and report.top_params:
-        top_neg = next(
-            (p for p in report.top_params if p.direction == "negative"), None
-        )
+        top_neg = next((p for p in report.top_params if p.direction == "negative"), None)
         if top_neg:
             suggestions.append(
                 ExperimentSuggestion(

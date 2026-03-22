@@ -55,9 +55,7 @@ def rank_runs(
         ValueError: If the metric column does not exist in the DataFrame.
     """
     if metric not in df.columns:
-        raise ValueError(
-            f"Metric '{metric}' not found. Available: {list(df.columns)}"
-        )
+        raise ValueError(f"Metric '{metric}' not found. Available: {list(df.columns)}")
     return df.sort_values(metric, ascending=ascending, na_position="last")
 
 

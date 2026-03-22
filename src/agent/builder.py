@@ -42,9 +42,17 @@ def _build_llm(config: AgentConfig) -> BaseChatModel:
             temperature=config.temperature,
             max_tokens=config.max_tokens,
         )
+    if config.llm_provider == "openai":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=config.llm_model,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
+        )
     raise ValueError(
         f"Unsupported LLM provider: {config.llm_provider!r}. "
-        "Supported values: 'ollama', 'anthropic'."
+        "Supported values: 'ollama', 'anthropic', 'openai'."
     )
 
 
@@ -95,16 +103,14 @@ def create_analyst_agent(
     system_prompt = _load_system_prompt()
     backend = FilesystemBackend(root_dir=config.workspace_path)
 
-    interrupt_on = (
-        {name: True for name in hitl_tools} if hitl_tools else None
-    )
+    interrupt_on = {name: True for name in hitl_tools} if hitl_tools else None
 
     agent = create_deep_agent(
         model=llm,
         tools=ALL_TOOLS,
         system_prompt=system_prompt,
         backend=backend,
-        interrupt_on=interrupt_on,
+        interrupt_on=interrupt_on,  # type: ignore[arg-type]
     )
 
     logger.info(
@@ -156,7 +162,11 @@ def invoke_with_governance(
     )
 
     invoke_input = {"messages": [{"role": "user", "content": message}]}
-    invoke_config = {"callbacks": [handler]}
+    invoke_config: dict[str, Any] = {
+        "callbacks": [handler],
+        "run_name": f"analyst-agent-{run_id}",
+        "metadata": {"run_id": run_id, "query_preview": message[:100]},
+    }
 
     with ThreadPoolExecutor(max_workers=1) as pool:
         future = pool.submit(agent.invoke, invoke_input, invoke_config)
@@ -169,8 +179,7 @@ def invoke_with_governance(
                 run_id,
             )
             raise TimeoutError(
-                f"Agent execution timed out after "
-                f"{config.execution_timeout_seconds}s"
+                f"Agent execution timed out after {config.execution_timeout_seconds}s"
             ) from None
 
     logger.info(

@@ -59,9 +59,7 @@ def seeded_experiment(mlflow_available: bool):  # type: ignore[no-untyped-def]
     run_ids: list[str] = []
     for i in range(3):
         with mlflow.start_run(experiment_id=exp_id, run_name=f"run-{i}") as run:
-            mlflow.log_params(
-                {"learning_rate": str(0.01 * (i + 1)), "epochs": "10"}
-            )
+            mlflow.log_params({"learning_rate": str(0.01 * (i + 1)), "epochs": "10"})
             mlflow.log_metrics(
                 {
                     "train_accuracy": 0.90 + i * 0.02,

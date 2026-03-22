@@ -31,6 +31,7 @@ _generate_report_mod = importlib.import_module("src.tools.generate_report")
 
 # ─── Shared test data ─────────────────────────────────────────────────────────
 
+
 def _make_experiment(name: str = "test-exp", exp_id: str = "1") -> ExperimentInfo:
     return ExperimentInfo(
         experiment_id=exp_id,
@@ -53,7 +54,8 @@ def _make_run(
         run_name=run_name,
         status=status,
         params=params or {"learning_rate": "0.01", "n_estimators": "100"},
-        metrics=metrics or {
+        metrics=metrics
+        or {
             "train_accuracy": 0.95,
             "val_accuracy": 0.88,
             "train_loss": 0.12,
@@ -72,6 +74,7 @@ def _make_run_info(run_id: str = "run-001", run_name: str = "test-run") -> RunIn
 
 
 # ─── load_experiment ──────────────────────────────────────────────────────────
+
 
 class TestLoadExperiment:
     def test_happy_path(self):
@@ -133,6 +136,7 @@ class TestLoadExperiment:
 
 # ─── compare_runs ─────────────────────────────────────────────────────────────
 
+
 class TestCompareRuns:
     def test_happy_path(self):
         from src.tools.compare_runs import compare_runs
@@ -179,26 +183,31 @@ class TestCompareRuns:
             instance = MockClient.return_value
             instance.get_run_details.return_value = run
 
-            result = compare_runs.invoke({
-                "run_ids": ["run-001"],
-                "metrics_to_compare": ["val_accuracy"],
-            })
+            result = compare_runs.invoke(
+                {
+                    "run_ids": ["run-001"],
+                    "metrics_to_compare": ["val_accuracy"],
+                }
+            )
 
         assert "val_accuracy" in result
 
 
 # ─── diagnose_run ─────────────────────────────────────────────────────────────
 
+
 class TestDiagnoseRun:
     def test_healthy_run(self):
         from src.tools.diagnose_run import diagnose_run
 
-        run = _make_run(metrics={
-            "train_accuracy": 0.90,
-            "val_accuracy": 0.88,
-            "train_loss": 0.15,
-            "val_loss": 0.17,
-        })
+        run = _make_run(
+            metrics={
+                "train_accuracy": 0.90,
+                "val_accuracy": 0.88,
+                "train_loss": 0.15,
+                "val_loss": 0.17,
+            }
+        )
 
         with patch.object(_diagnose_run_mod, "MLflowAnalystClient") as MockClient:
             instance = MockClient.return_value
@@ -212,10 +221,12 @@ class TestDiagnoseRun:
     def test_overfitting_detected(self):
         from src.tools.diagnose_run import diagnose_run
 
-        overfit_run = _make_run(metrics={
-            "train_accuracy": 0.98,
-            "val_accuracy": 0.62,  # large gap → overfitting
-        })
+        overfit_run = _make_run(
+            metrics={
+                "train_accuracy": 0.98,
+                "val_accuracy": 0.62,  # large gap → overfitting
+            }
+        )
 
         with patch.object(_diagnose_run_mod, "MLflowAnalystClient") as MockClient:
             instance = MockClient.return_value
@@ -267,6 +278,7 @@ class TestDiagnoseRun:
 
 # ─── analyze_patterns ─────────────────────────────────────────────────────────
 
+
 class TestAnalyzePatterns:
     def _make_diverse_runs(self) -> list[RunDetails]:
         configs = [
@@ -300,10 +312,12 @@ class TestAnalyzePatterns:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.side_effect = runs
 
-            result = analyze_patterns.invoke({
-                "experiment_name": "test-exp",
-                "target_metric": "val_accuracy",
-            })
+            result = analyze_patterns.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "target_metric": "val_accuracy",
+                }
+            )
 
         assert "val_accuracy" in result
         assert "ERROR" not in result
@@ -316,10 +330,12 @@ class TestAnalyzePatterns:
             instance = MockClient.return_value
             instance.get_experiment.side_effect = MLflowClientError("Not found.")
 
-            result = analyze_patterns.invoke({
-                "experiment_name": "missing",
-                "target_metric": "val_accuracy",
-            })
+            result = analyze_patterns.invoke(
+                {
+                    "experiment_name": "missing",
+                    "target_metric": "val_accuracy",
+                }
+            )
 
         assert "ERROR" in result
 
@@ -335,11 +351,13 @@ class TestAnalyzePatterns:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.return_value = run_details
 
-            result = analyze_patterns.invoke({
-                "experiment_name": "test-exp",
-                "target_metric": "val_accuracy",
-                "min_runs": 5,
-            })
+            result = analyze_patterns.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "target_metric": "val_accuracy",
+                    "min_runs": 5,
+                }
+            )
 
         assert isinstance(result, str)
         assert len(result) > 0
@@ -347,13 +365,15 @@ class TestAnalyzePatterns:
 
 # ─── suggest_next_experiments ─────────────────────────────────────────────────
 
+
 class TestSuggestNextExperiments:
     def test_happy_path(self):
         from src.tools.suggest_next_experiments import suggest_next_experiments
 
         runs = [
             _make_run(
-                f"r{i}", f"run-{i}",
+                f"r{i}",
+                f"run-{i}",
                 params={
                     "learning_rate": str(0.001 * (i + 1)),
                     "n_estimators": str(50 * (i + 1)),
@@ -370,11 +390,13 @@ class TestSuggestNextExperiments:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.side_effect = runs
 
-            result = suggest_next_experiments.invoke({
-                "experiment_name": "test-exp",
-                "optimization_goal": "maximize val_accuracy",
-                "num_suggestions": 3,
-            })
+            result = suggest_next_experiments.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "optimization_goal": "maximize val_accuracy",
+                    "num_suggestions": 3,
+                }
+            )
 
         assert "Suggestion" in result
         assert "ERROR" not in result
@@ -387,20 +409,19 @@ class TestSuggestNextExperiments:
             instance.get_experiment.return_value = _make_experiment()
             instance.list_runs.return_value = []
 
-            result = suggest_next_experiments.invoke({
-                "experiment_name": "test-exp",
-                "optimization_goal": "maximize val_accuracy",
-            })
+            result = suggest_next_experiments.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "optimization_goal": "maximize val_accuracy",
+                }
+            )
 
         assert "no runs" in result.lower() or "Run at least" in result
 
     def test_num_suggestions_capped_at_5(self):
         from src.tools.suggest_next_experiments import suggest_next_experiments
 
-        runs = [
-            _make_run(f"r{i}", metrics={"val_accuracy": 0.80 + i * 0.01})
-            for i in range(3)
-        ]
+        runs = [_make_run(f"r{i}", metrics={"val_accuracy": 0.80 + i * 0.01}) for i in range(3)]
         run_infos = [_make_run_info(r.run_id) for r in runs]
 
         with patch.object(_suggest_mod, "MLflowAnalystClient") as MockClient:
@@ -409,25 +430,31 @@ class TestSuggestNextExperiments:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.side_effect = runs
 
-            result = suggest_next_experiments.invoke({
-                "experiment_name": "test-exp",
-                "optimization_goal": "maximize val_accuracy",
-                "num_suggestions": 10,
-            })
+            result = suggest_next_experiments.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "optimization_goal": "maximize val_accuracy",
+                    "num_suggestions": 10,
+                }
+            )
 
         assert isinstance(result, str)
 
 
 # ─── generate_report ──────────────────────────────────────────────────────────
 
+
 class TestGenerateReport:
     def test_happy_path(self, tmp_path: Path):
         from src.tools.generate_report import generate_report
 
         runs = [
-            _make_run(f"r{i}", f"run-{i}",
-                      params={"learning_rate": str(0.01 * (i + 1))},
-                      metrics={"train_accuracy": 0.9 + i * 0.01, "val_accuracy": 0.85 + i * 0.01})
+            _make_run(
+                f"r{i}",
+                f"run-{i}",
+                params={"learning_rate": str(0.01 * (i + 1))},
+                metrics={"train_accuracy": 0.9 + i * 0.01, "val_accuracy": 0.85 + i * 0.01},
+            )
             for i in range(3)
         ]
         run_infos = [_make_run_info(r.run_id) for r in runs]
@@ -439,11 +466,13 @@ class TestGenerateReport:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.side_effect = runs
 
-            result = generate_report.invoke({
-                "experiment_name": "test-exp",
-                "report_title": "My Test Report",
-                "output_path": str(output_file),
-            })
+            result = generate_report.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "report_title": "My Test Report",
+                    "output_path": str(output_file),
+                }
+            )
 
         assert "Report saved" in result
         assert output_file.exists()
@@ -458,10 +487,12 @@ class TestGenerateReport:
             instance.get_experiment.return_value = _make_experiment()
             instance.list_runs.return_value = []
 
-            result = generate_report.invoke({
-                "experiment_name": "test-exp",
-                "report_title": "Empty Report",
-            })
+            result = generate_report.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "report_title": "Empty Report",
+                }
+            )
 
         assert "no runs" in result.lower() or "Cannot generate" in result
 
@@ -473,10 +504,12 @@ class TestGenerateReport:
             instance = MockClient.return_value
             instance.get_experiment.side_effect = MLflowClientError("Not found.")
 
-            result = generate_report.invoke({
-                "experiment_name": "missing-exp",
-                "report_title": "Report",
-            })
+            result = generate_report.invoke(
+                {
+                    "experiment_name": "missing-exp",
+                    "report_title": "Report",
+                }
+            )
 
         assert "ERROR" in result
 
@@ -484,10 +517,13 @@ class TestGenerateReport:
         from src.tools.generate_report import generate_report
 
         runs = [
-            _make_run(f"r{i}", metrics={
-                "train_accuracy": 0.95,
-                "val_accuracy": 0.60,  # overfitting
-            })
+            _make_run(
+                f"r{i}",
+                metrics={
+                    "train_accuracy": 0.95,
+                    "val_accuracy": 0.60,  # overfitting
+                },
+            )
             for i in range(3)
         ]
         run_infos = [_make_run_info(r.run_id) for r in runs]
@@ -499,11 +535,13 @@ class TestGenerateReport:
             instance.list_runs.return_value = run_infos
             instance.get_run_details.side_effect = runs
 
-            generate_report.invoke({
-                "experiment_name": "test-exp",
-                "report_title": "Sections Test",
-                "output_path": str(output_file),
-            })
+            generate_report.invoke(
+                {
+                    "experiment_name": "test-exp",
+                    "report_title": "Sections Test",
+                    "output_path": str(output_file),
+                }
+            )
 
         content = output_file.read_text(encoding="utf-8")
         assert "Metrics Comparison" in content
@@ -512,6 +550,7 @@ class TestGenerateReport:
 
 
 # ─── tools __init__ ───────────────────────────────────────────────────────────
+
 
 class TestToolsInit:
     def test_all_tools_exported(self):

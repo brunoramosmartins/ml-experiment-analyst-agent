@@ -46,9 +46,7 @@ def _make_analysis(
 
 
 def test_report_contains_header() -> None:
-    analysis = _make_analysis(
-        runs=[_make_run("r1", "run-1", {"val_accuracy": 0.9})]
-    )
+    analysis = _make_analysis(runs=[_make_run("r1", "run-1", {"val_accuracy": 0.9})])
     report = generate_markdown_report(analysis)
     assert "# Analysis Report: test-experiment" in report
     assert "**Runs analyzed:** 1" in report
@@ -128,15 +126,11 @@ def test_patterns_with_correlations() -> None:
         experiment_id="exp-1",
         n_runs=10,
         correlations=[
-            ParamCorrelation(
-                param="lr", correlation=0.85, direction="positive", n_runs=10
-            ),
+            ParamCorrelation(param="lr", correlation=0.85, direction="positive", n_runs=10),
         ],
         message="Strong positive correlation found",
     )
-    report = generate_markdown_report(
-        _make_analysis(correlation_report=corr_report)
-    )
+    report = generate_markdown_report(_make_analysis(correlation_report=corr_report))
     assert "`lr`" in report
     assert "0.85" in report.replace("0.850", "0.85")
 
@@ -149,16 +143,12 @@ def test_patterns_no_correlations() -> None:
         correlations=[],
         message="Not enough runs for correlation analysis",
     )
-    report = generate_markdown_report(
-        _make_analysis(correlation_report=corr_report)
-    )
+    report = generate_markdown_report(_make_analysis(correlation_report=corr_report))
     assert "Not enough runs" in report
 
 
 def test_patterns_not_performed() -> None:
-    report = generate_markdown_report(
-        _make_analysis(correlation_report=None)
-    )
+    report = generate_markdown_report(_make_analysis(correlation_report=None))
     assert "_Pattern analysis not performed._" in report
 
 
@@ -180,9 +170,7 @@ def test_recommendations_with_suggestions() -> None:
             hypothesis="Better generalization",
         ),
     ]
-    report = generate_markdown_report(
-        _make_analysis(suggestions=suggestions)
-    )
+    report = generate_markdown_report(_make_analysis(suggestions=suggestions))
     assert "### 1." in report
     assert "### 2." in report
     assert "`lr=0.1`" in report
@@ -222,9 +210,7 @@ def test_df_to_markdown_empty() -> None:
 
 
 def test_df_to_markdown_rounds_floats() -> None:
-    df = pd.DataFrame(
-        {"val": [0.123456789]}, index=["run-1"]
-    )
+    df = pd.DataFrame({"val": [0.123456789]}, index=["run-1"])
     result = _df_to_markdown(df)
     assert "0.1235" in result
     assert "0.123456789" not in result

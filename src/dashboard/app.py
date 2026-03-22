@@ -37,12 +37,9 @@ if page == "Run Explorer":
     runs_df = list_runs(LOG_DIR)
 
     if runs_df.empty:
-        st.info(
-            "No trace logs found. Run the agent with governance enabled to "
-            "generate logs."
-        )
+        st.info("No trace logs found. Run the agent with governance enabled to generate logs.")
         st.code(
-            "python -c \"\n"
+            'python -c "\n'
             "from src.agent.builder import create_analyst_agent, "
             "invoke_with_governance\\n"
             "agent = create_analyst_agent()\\n"
@@ -52,6 +49,10 @@ if page == "Run Explorer":
         )
         st.stop()
 
+    # Sort by start_time descending (most recent first)
+    if "start_time" in runs_df.columns:
+        runs_df = runs_df.sort_values("start_time", ascending=False).reset_index(drop=True)
+
     st.metric("Total Runs", len(runs_df))
 
     # Run list
@@ -60,6 +61,7 @@ if page == "Run Explorer":
         [
             "run_id",
             "date",
+            "start_time",
             "n_tool_calls",
             "n_errors",
             "total_duration_ms",
@@ -69,6 +71,7 @@ if page == "Run Explorer":
     display_df.columns = [
         "Run ID",
         "Date",
+        "Started At",
         "Tool Calls",
         "Errors",
         "Duration (ms)",
@@ -81,6 +84,7 @@ if page == "Run Explorer":
     selected_run = st.selectbox(
         "Select a run to inspect",
         runs_df["run_id"].tolist(),
+        format_func=lambda rid: f"{rid} ({runs_df.loc[runs_df['run_id'] == rid, 'start_time'].iloc[0]})",
     )
 
     if selected_run:
@@ -92,12 +96,8 @@ if page == "Run Explorer":
             if not events_df.empty:
                 # Summary metrics
                 col1, col2, col3 = st.columns(3)
-                tool_events = events_df[
-                    events_df["event_type"].isin(["tool_start", "tool_end"])
-                ]
-                error_events = events_df[
-                    events_df["event_type"] == "tool_error"
-                ]
+                tool_events = events_df[events_df["event_type"].isin(["tool_start", "tool_end"])]
+                error_events = events_df[events_df["event_type"] == "tool_error"]
                 col1.metric("Tool Calls", len(tool_events) // 2)
                 col2.metric("Errors", len(error_events))
 
@@ -179,9 +179,7 @@ elif page == "Tool Analytics":
     col1.metric("Total Runs", len(runs_df))
     col2.metric("Total Tool Calls", int(analytics_df["call_count"].sum()))
     total_errors = int(analytics_df["error_count"].sum())
-    total_calls = int(
-        analytics_df["call_count"].sum() + analytics_df["error_count"].sum()
-    )
+    total_calls = int(analytics_df["call_count"].sum() + analytics_df["error_count"].sum())
     col3.metric(
         "Overall Error Rate",
         f"{total_errors / total_calls:.1%}" if total_calls > 0 else "0%",
@@ -208,6 +206,4 @@ elif page == "Tool Analytics":
         "Errors",
         "Error Rate",
     ]
-    st.dataframe(
-        display_analytics, use_container_width=True, hide_index=True
-    )
+    st.dataframe(display_analytics, use_container_width=True, hide_index=True)

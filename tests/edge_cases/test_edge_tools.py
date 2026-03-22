@@ -50,17 +50,13 @@ def _make_run(
 
 def test_load_experiment_zero_runs() -> None:
     with (
-        patch.object(
-            _load_experiment_mod, "MLflowAnalystClient"
-        ) as mock_cls,
+        patch.object(_load_experiment_mod, "MLflowAnalystClient") as mock_cls,
     ):
         client = mock_cls.return_value
         client.get_experiment.return_value = _make_experiment()
         client.list_runs.return_value = []
 
-        result = _load_experiment_mod.load_experiment.invoke(
-            {"experiment_name": "edge-exp"}
-        )
+        result = _load_experiment_mod.load_experiment.invoke({"experiment_name": "edge-exp"})
         assert "0 run" in result.lower() or "no runs" in result.lower() or "0" in result
 
 
@@ -85,15 +81,15 @@ def test_suggest_single_run() -> None:
         client.get_experiment.return_value = _make_experiment()
         client.list_runs.return_value = [
             RunInfo(
-                run_id="run-001", experiment_id="1", run_name="r1",
+                run_id="run-001",
+                experiment_id="1",
+                run_name="r1",
                 status="FINISHED",
             )
         ]
         client.get_run_details.return_value = _make_run()
 
-        result = _suggest_mod.suggest_next_experiments.invoke(
-            {"experiment_name": "edge-exp"}
-        )
+        result = _suggest_mod.suggest_next_experiments.invoke({"experiment_name": "edge-exp"})
         assert isinstance(result, str)
         assert "ERROR" not in result
 
@@ -123,8 +119,10 @@ def test_analyze_patterns_non_numeric_params() -> None:
         client.get_experiment.return_value = _make_experiment()
         client.list_runs.return_value = [
             RunInfo(
-                run_id=r.run_id, experiment_id="1",
-                run_name=r.run_name, status="FINISHED",
+                run_id=r.run_id,
+                experiment_id="1",
+                run_name=r.run_name,
+                status="FINISHED",
             )
             for r in runs
         ]
@@ -145,8 +143,10 @@ def test_generate_report_no_target_metric() -> None:
         client.get_experiment.return_value = _make_experiment()
         client.list_runs.return_value = [
             RunInfo(
-                run_id="r1", experiment_id="1",
-                run_name="run-1", status="FINISHED",
+                run_id="r1",
+                experiment_id="1",
+                run_name="run-1",
+                status="FINISHED",
             )
         ]
         client.get_run_details.return_value = runs[0]
@@ -164,21 +164,15 @@ def test_generate_report_no_target_metric() -> None:
 
 def test_load_experiment_connection_error() -> None:
     with patch.object(_load_experiment_mod, "MLflowAnalystClient") as mock_cls:
-        mock_cls.return_value.get_experiment.side_effect = MLflowClientError(
-            "Connection refused"
-        )
+        mock_cls.return_value.get_experiment.side_effect = MLflowClientError("Connection refused")
 
-        result = _load_experiment_mod.load_experiment.invoke(
-            {"experiment_name": "edge-exp"}
-        )
+        result = _load_experiment_mod.load_experiment.invoke({"experiment_name": "edge-exp"})
         assert "ERROR" in result
 
 
 def test_compare_runs_run_not_found() -> None:
     with patch.object(_compare_runs_mod, "MLflowAnalystClient") as mock_cls:
-        mock_cls.return_value.get_run_details.side_effect = MLflowClientError(
-            "Run not found"
-        )
+        mock_cls.return_value.get_run_details.side_effect = MLflowClientError("Run not found")
 
         result = _compare_runs_mod.compare_runs.invoke(
             {"run_ids": ["bad-id"], "experiment_name": "edge-exp"}

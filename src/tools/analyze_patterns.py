@@ -66,8 +66,7 @@ def analyze_patterns(
             f"Pattern analysis for experiment '{experiment_name}' "
             f"(target: `{target_metric}`):\n\n"
             f"ℹ️ {report.message}\n\n"
-            f"Runs fetched: {len(runs)}"
-            + (f" ({fetch_errors} failed)" if fetch_errors else "")
+            f"Runs fetched: {len(runs)}" + (f" ({fetch_errors} failed)" if fetch_errors else "")
         )
 
     lines = [
@@ -96,8 +95,10 @@ def analyze_patterns(
                 interpretation = f"Weak relationship with `{target_metric}`"
 
             strength = (
-                "strong" if abs(p.correlation) >= 0.7
-                else "moderate" if abs(p.correlation) >= 0.4
+                "strong"
+                if abs(p.correlation) >= 0.7
+                else "moderate"
+                if abs(p.correlation) >= 0.4
                 else "weak"
             )
             lines.append(
@@ -127,10 +128,7 @@ def analyze_patterns(
             + ", ".join(f"`{p.param}` (r={p.correlation:+.2f})" for p in negatives[:3])
         )
     if neutrals:
-        lines.append(
-            "**No clear effect:** "
-            + ", ".join(f"`{p.param}`" for p in neutrals[:5])
-        )
+        lines.append("**No clear effect:** " + ", ".join(f"`{p.param}`" for p in neutrals[:5]))
     if not positives and not negatives:
         lines.append(
             "No strong correlations found. Consider: more runs with varied hyperparameters, "

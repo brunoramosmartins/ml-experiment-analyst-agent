@@ -14,9 +14,7 @@ from src.analysis.suggestions import AnalysisResult, suggest_next_experiments
 from src.mlflow_client.client import MLflowAnalystClient, MLflowClientError
 from src.report.generator import generate_markdown_report
 
-_DEFAULT_REPORTS_DIR = Path(
-    os.getenv("AGENT_WORKSPACE_PATH", "data/agent-workspace")
-) / "reports"
+_DEFAULT_REPORTS_DIR = Path(os.getenv("AGENT_WORKSPACE_PATH", "data/agent-workspace")) / "reports"
 
 
 @tool
@@ -54,10 +52,7 @@ def generate_report(
         return f"ERROR: Could not list runs for '{experiment_name}': {exc}"
 
     if not run_infos:
-        return (
-            f"Experiment '{experiment_name}' has no runs. "
-            "Cannot generate a report without data."
-        )
+        return f"Experiment '{experiment_name}' has no runs. Cannot generate a report without data."
 
     runs = []
     fetch_errors = 0

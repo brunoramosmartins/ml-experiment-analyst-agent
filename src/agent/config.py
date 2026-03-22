@@ -14,12 +14,8 @@ class AgentConfig:
     """
 
     # ─── LLM ──────────────────────────────────────────────────────────────────
-    llm_provider: str = field(
-        default_factory=lambda: os.getenv("LLM_PROVIDER", "ollama")
-    )
-    llm_model: str = field(
-        default_factory=lambda: os.getenv("LLM_MODEL", "llama3.1:8b")
-    )
+    llm_provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "ollama"))
+    llm_model: str = field(default_factory=lambda: os.getenv("LLM_MODEL", "llama3.1:8b"))
     ollama_base_url: str = field(
         default_factory=lambda: os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     )
@@ -28,9 +24,7 @@ class AgentConfig:
 
     # ─── Filesystem backend ───────────────────────────────────────────────────
     workspace_path: Path = field(
-        default_factory=lambda: Path(
-            os.getenv("AGENT_WORKSPACE_PATH", "data/agent-workspace")
-        )
+        default_factory=lambda: Path(os.getenv("AGENT_WORKSPACE_PATH", "data/agent-workspace"))
     )
 
     # ─── MLflow ───────────────────────────────────────────────────────────────
@@ -49,7 +43,5 @@ class AgentConfig:
         default_factory=lambda: int(os.getenv("AGENT_MAX_FAILURES", "3"))
     )
     trace_log_dir: Path = field(
-        default_factory=lambda: Path(
-            os.getenv("AGENT_TRACE_LOG_DIR", "data/logs/agent_traces")
-        )
+        default_factory=lambda: Path(os.getenv("AGENT_TRACE_LOG_DIR", "data/logs/agent_traces"))
     )

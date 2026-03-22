@@ -67,9 +67,7 @@ def test_metric_delta_identical_runs() -> None:
 
 
 def test_overfitting_extreme_gap() -> None:
-    run = _make_run(
-        "r1", {"train_accuracy": 1.0, "val_accuracy": 0.0}
-    )
+    run = _make_run("r1", {"train_accuracy": 1.0, "val_accuracy": 0.0})
     report = detect_overfitting(run)
     assert report.is_overfit is True
     assert report.severity == OverfitSeverity.HIGH
@@ -77,9 +75,7 @@ def test_overfitting_extreme_gap() -> None:
 
 def test_overfitting_negative_gap() -> None:
     # Val better than train — not overfitting
-    run = _make_run(
-        "r1", {"train_accuracy": 0.80, "val_accuracy": 0.85}
-    )
+    run = _make_run("r1", {"train_accuracy": 0.80, "val_accuracy": 0.85})
     report = detect_overfitting(run)
     assert report.is_overfit is False
 

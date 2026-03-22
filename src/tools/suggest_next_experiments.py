@@ -129,6 +129,7 @@ def suggest_next_experiments(
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _extract_metric_from_goal(optimization_goal: str, runs: list) -> str:
     """Infer the target metric name from the optimization goal string.
 

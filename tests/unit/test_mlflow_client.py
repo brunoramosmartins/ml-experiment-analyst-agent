@@ -14,10 +14,13 @@ from src.mlflow_client.models import RunDetails
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture()
 def client() -> MLflowAnalystClient:
-    with patch("src.mlflow_client.client.mlflow"), \
-         patch("src.mlflow_client.client.mlflow.MlflowClient"):
+    with (
+        patch("src.mlflow_client.client.mlflow"),
+        patch("src.mlflow_client.client.mlflow.MlflowClient"),
+    ):
         c = MLflowAnalystClient(tracking_uri="http://fake:5000")
     return c
 
@@ -45,6 +48,7 @@ def _mock_run(
 
 
 # ─── get_experiment ────────────────────────────────────────────────────────────
+
 
 def test_get_experiment_by_name(client: MLflowAnalystClient) -> None:
     mock_exp = MagicMock()
@@ -74,6 +78,7 @@ def test_get_experiment_not_found_raises(client: MLflowAnalystClient) -> None:
 
 # ─── list_runs ────────────────────────────────────────────────────────────────
 
+
 def test_list_runs_returns_run_info(client: MLflowAnalystClient) -> None:
     mock_run = _mock_run()
 
@@ -93,6 +98,7 @@ def test_list_runs_empty(client: MLflowAnalystClient) -> None:
 
 
 # ─── get_run_details ──────────────────────────────────────────────────────────
+
 
 def test_get_run_details_returns_full_data(client: MLflowAnalystClient) -> None:
     mock_run = _mock_run()
@@ -125,16 +131,25 @@ def test_get_run_details_not_found_raises(client: MLflowAnalystClient) -> None:
 
 # ─── compare_runs ─────────────────────────────────────────────────────────────
 
+
 def test_compare_runs_returns_dataframe(client: MLflowAnalystClient) -> None:
     import pandas as pd
 
     run_a = RunDetails(
-        run_id="a", experiment_id="1", run_name="run-a", status="FINISHED",
-        params={"lr": "0.01"}, metrics={"val_accuracy": 0.90},
+        run_id="a",
+        experiment_id="1",
+        run_name="run-a",
+        status="FINISHED",
+        params={"lr": "0.01"},
+        metrics={"val_accuracy": 0.90},
     )
     run_b = RunDetails(
-        run_id="b", experiment_id="1", run_name="run-b", status="FINISHED",
-        params={"lr": "0.001"}, metrics={"val_accuracy": 0.85},
+        run_id="b",
+        experiment_id="1",
+        run_name="run-b",
+        status="FINISHED",
+        params={"lr": "0.001"},
+        metrics={"val_accuracy": 0.85},
     )
 
     client.get_run_details = MagicMock(side_effect=[run_a, run_b])
@@ -170,12 +185,20 @@ def test_compare_runs_partial_metrics(client: MLflowAnalystClient) -> None:
     import pandas as pd
 
     run_a = RunDetails(
-        run_id="a", experiment_id="1", run_name="run-a", status="FINISHED",
-        params={}, metrics={"val_accuracy": 0.9, "val_loss": 0.1},
+        run_id="a",
+        experiment_id="1",
+        run_name="run-a",
+        status="FINISHED",
+        params={},
+        metrics={"val_accuracy": 0.9, "val_loss": 0.1},
     )
     run_b = RunDetails(
-        run_id="b", experiment_id="1", run_name="run-b", status="FINISHED",
-        params={}, metrics={"val_accuracy": 0.8},  # no val_loss
+        run_id="b",
+        experiment_id="1",
+        run_name="run-b",
+        status="FINISHED",
+        params={},
+        metrics={"val_accuracy": 0.8},  # no val_loss
     )
 
     client.get_run_details = MagicMock(side_effect=[run_a, run_b])

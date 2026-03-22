@@ -19,8 +19,8 @@ class ParamCorrelation:
 
     param: str
     correlation: float  # Pearson r ∈ [-1, 1]
-    direction: str      # "positive" | "negative" | "neutral"
-    n_runs: int         # Number of runs used (non-null pairs)
+    direction: str  # "positive" | "negative" | "neutral"
+    n_runs: int  # Number of runs used (non-null pairs)
 
 
 @dataclass
@@ -62,8 +62,7 @@ def correlate_params_metrics(
             experiment_id=experiment_id,
             n_runs=len(runs),
             message=(
-                f"Not enough runs for correlation analysis "
-                f"(need {min_runs}, got {len(runs)})."
+                f"Not enough runs for correlation analysis (need {min_runs}, got {len(runs)})."
             ),
         )
 
