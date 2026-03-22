@@ -37,3 +37,19 @@ class AgentConfig:
     mlflow_tracking_uri: str = field(
         default_factory=lambda: os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
     )
+
+    # ─── Governance ─────────────────────────────────────────────────────────
+    max_tokens_per_execution: int = field(
+        default_factory=lambda: int(os.getenv("AGENT_MAX_TOKENS", "50000"))
+    )
+    execution_timeout_seconds: int = field(
+        default_factory=lambda: int(os.getenv("AGENT_TIMEOUT_SECONDS", "300"))
+    )
+    max_consecutive_failures: int = field(
+        default_factory=lambda: int(os.getenv("AGENT_MAX_FAILURES", "3"))
+    )
+    trace_log_dir: Path = field(
+        default_factory=lambda: Path(
+            os.getenv("AGENT_TRACE_LOG_DIR", "data/logs/agent_traces")
+        )
+    )

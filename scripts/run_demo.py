@@ -69,7 +69,7 @@ def _extract_response(result: object) -> str:
 
 def main() -> int:
     """Run all demo queries and print a summary."""
-    from src.agent.builder import create_analyst_agent
+    from src.agent.builder import create_analyst_agent, invoke_with_governance
 
     logger.info("Creating ML Experiment Analyst Agent...")
     try:
@@ -90,9 +90,7 @@ def main() -> int:
 
         start = time.time()
         try:
-            result = agent.invoke(
-                {"messages": [{"role": "user", "content": query["content"]}]}
-            )
+            result = invoke_with_governance(agent, query["content"])
             elapsed = time.time() - start
             logger.info("Completed in %.1fs", elapsed)
 

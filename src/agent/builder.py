@@ -11,6 +11,9 @@ in your .env to switch models without touching this file.
 from __future__ import annotations
 
 import logging
+import uuid
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from pathlib import Path
 from typing import Any
 
@@ -53,7 +56,11 @@ def _load_system_prompt() -> str:
     return "You are an ML Experiment Analyst Agent."
 
 
-def create_analyst_agent(config: AgentConfig | None = None) -> Any:
+def create_analyst_agent(
+    config: AgentConfig | None = None,
+    *,
+    hitl_tools: list[str] | None = None,
+) -> Any:
     """Create and return the ML Experiment Analyst Agent.
 
     The agent is built on deepagents (LangGraph). It uses a FilesystemBackend
@@ -61,6 +68,8 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
 
     Args:
         config: Agent configuration. Uses environment variable defaults if None.
+        hitl_tools: Tool names that require human approval before execution.
+            Example: ``["generate_report"]`` pauses before generating reports.
 
     Returns:
         CompiledStateGraph ready for invocation via agent.invoke({...}).
@@ -86,19 +95,89 @@ def create_analyst_agent(config: AgentConfig | None = None) -> Any:
     system_prompt = _load_system_prompt()
     backend = FilesystemBackend(root_dir=config.workspace_path)
 
+    interrupt_on = (
+        {name: True for name in hitl_tools} if hitl_tools else None
+    )
+
     agent = create_deep_agent(
         model=llm,
         tools=ALL_TOOLS,
         system_prompt=system_prompt,
         backend=backend,
+        interrupt_on=interrupt_on,
     )
 
     logger.info(
-        "Agent created — provider=%s, model=%s, tools=%d, workspace=%s",
+        "Agent created — provider=%s, model=%s, tools=%d, workspace=%s, hitl=%s",
         config.llm_provider,
         config.llm_model,
         len(ALL_TOOLS),
         config.workspace_path,
+        hitl_tools or "none",
     )
 
     return agent
+
+
+def invoke_with_governance(
+    agent: Any,
+    message: str,
+    config: AgentConfig | None = None,
+) -> dict[str, Any]:
+    """Invoke the agent with governance callbacks and execution timeout.
+
+    Attaches a :class:`GovernanceCallbackHandler` that logs structured JSONL
+    events and enforces token/failure limits. The invocation is wrapped in a
+    thread-based timeout (Windows-compatible).
+
+    Args:
+        agent: A compiled agent from :func:`create_analyst_agent`.
+        message: The user message to send to the agent.
+        config: Agent configuration (for governance limits). Defaults apply if None.
+
+    Returns:
+        The raw result dict from ``agent.invoke()``.
+
+    Raises:
+        GovernanceLimitError: If token budget or failure limit is exceeded.
+        TimeoutError: If execution exceeds ``config.execution_timeout_seconds``.
+    """
+    from src.observability.governance import GovernanceCallbackHandler
+
+    if config is None:
+        config = AgentConfig()
+
+    run_id = uuid.uuid4().hex[:12]
+    handler = GovernanceCallbackHandler(
+        run_id=run_id,
+        log_dir=config.trace_log_dir,
+        max_tokens=config.max_tokens_per_execution,
+        max_consecutive_failures=config.max_consecutive_failures,
+    )
+
+    invoke_input = {"messages": [{"role": "user", "content": message}]}
+    invoke_config = {"callbacks": [handler]}
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(agent.invoke, invoke_input, invoke_config)
+        try:
+            result = future.result(timeout=config.execution_timeout_seconds)
+        except FuturesTimeout:
+            logger.error(
+                "Execution timed out after %ds (run_id=%s)",
+                config.execution_timeout_seconds,
+                run_id,
+            )
+            raise TimeoutError(
+                f"Agent execution timed out after "
+                f"{config.execution_timeout_seconds}s"
+            ) from None
+
+    logger.info(
+        "Run completed — run_id=%s, tokens=%d, log=%s",
+        run_id,
+        handler.total_tokens,
+        handler._log_file,  # noqa: SLF001
+    )
+
+    return result

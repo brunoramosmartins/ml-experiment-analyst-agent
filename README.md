@@ -68,8 +68,8 @@ ML Experiment Analyst Agent (deepagents / LangGraph)
     ├── suggest_next      ──► src/analysis/suggestions.py
     └── generate_report   ──► data/agent-workspace/reports/
     │
-    ├── GovernanceMiddleware ──► data/logs/agent_traces/ (JSONL)
-    └── LangSmith            ──► Full execution traces
+    ├── GovernanceCallbackHandler ──► data/logs/agent_traces/ (JSONL)
+    └── LangSmith                 ──► Full execution traces
 ```
 
 ---
@@ -97,7 +97,7 @@ src/
 ├── mlflow_client/  # MLflow access layer
 ├── analysis/       # Pure analysis functions (metrics, overfitting, patterns)
 ├── report/         # Markdown report generator
-├── observability/  # GovernanceMiddleware + LangSmith helpers
+├── observability/  # GovernanceCallbackHandler + LangSmith helpers
 └── dashboard/      # Streamlit governance dashboard
 
 tests/
@@ -106,8 +106,9 @@ tests/
 └── edge_cases/     # Edge case scenarios
 
 scripts/
-├── seed_mlflow.py  # Populate MLflow with 3 synthetic experiments
-└── run_demo.py     # Run 3 demonstration queries
+├── seed_mlflow.py      # Populate MLflow with 3 synthetic experiments
+├── run_demo.py         # Run 3 demonstration queries with governance
+└── run_demo_hitl.py    # Human-in-the-loop demo
 ```
 
 ---
@@ -117,6 +118,8 @@ scripts/
 - [Architecture Decision Records](docs/architecture-decisions.md)
 - [Setup Guide](docs/SETUP.md)
 - [Tools Reference](docs/tools-reference.md)
+- [Governance & Observability](docs/governance.md)
+- [Human-in-the-Loop](docs/hitl.md)
 - [Prompt Engineering Log](docs/prompt-engineering-log.md)
 - [Demo Experiments](docs/demo-experiments.md)
 - [Contributing](CONTRIBUTING.md)

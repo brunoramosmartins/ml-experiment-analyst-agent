@@ -5,7 +5,7 @@ The agent uses two complementary observability layers:
 | Layer | What it captures | Where to see it |
 |---|---|---|
 | **LangSmith** | Every LLM call, tool invocation, token count, latency | [smith.langchain.com](https://smith.langchain.com/) |
-| **GovernanceMiddleware** *(Phase 4)* | Structured JSONL per tool call | `data/logs/agent_traces/` |
+| **GovernanceCallbackHandler** | Structured JSONL per tool call | `data/logs/agent_traces/` |
 
 ---
 
@@ -69,4 +69,35 @@ These values appear in the LangSmith run detail view under **Metadata** and **Ta
 3. Click any run to see the full trace tree
 4. Expand tool calls to inspect inputs and outputs
 
-> **Screenshots will be added here after the first successful end-to-end run (Phase 3).**
+---
+
+## Local JSONL Tracing (GovernanceCallbackHandler)
+
+The `GovernanceCallbackHandler` (`src/observability/governance.py`) captures
+tool-level events as structured JSONL logs under `data/logs/agent_traces/`.
+
+Use `invoke_with_governance()` to automatically attach the handler:
+
+```python
+from src.agent.builder import create_analyst_agent, invoke_with_governance
+
+agent = create_analyst_agent()
+result = invoke_with_governance(agent, "Analyze the binary-classification experiment")
+```
+
+See [governance.md](governance.md) for the full JSONL schema and configuration.
+
+---
+
+## Governance Dashboard
+
+A Streamlit dashboard provides a visual interface for the JSONL trace logs:
+
+```bash
+streamlit run src/dashboard/app.py
+```
+
+**Run Explorer** — browse executions, inspect tool call timelines, view
+inputs/outputs for each step.
+
+**Tool Analytics** — call frequency, average latency, and error rates per tool.
