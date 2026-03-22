@@ -1,7 +1,11 @@
 # Tools Reference
 
-This document describes all 6 custom LangChain tools available to the ML Experiment Analyst Agent.
+This document describes all 7 custom LangChain tools available to the ML Experiment Analyst Agent.
 Each tool is a `@tool`-decorated function in `src/tools/` and is registered in `src/tools/__init__.py`.
+
+> **Governance note:** When using `invoke_with_governance()`, all tool invocations are automatically
+> traced by the `GovernanceCallbackHandler`. Each call is logged as a JSONL event with tool name,
+> input/output summaries, duration, and token usage. See [Governance](governance.md) for details.
 
 ---
 
@@ -15,6 +19,7 @@ Each tool is a `@tool`-decorated function in `src/tools/` and is registered in `
 | [`analyze_patterns`](#analyze_patterns) | Correlate hyperparameters with a target metric | Step 4 |
 | [`suggest_next_experiments`](#suggest_next_experiments) | Generate next-experiment configurations | Step 5 |
 | [`generate_report`](#generate_report) | Produce and save a full Markdown analysis report | Step 6 (final) |
+| [`web_search`](#web_search) | Search the web for ML techniques and papers | On demand (optional) |
 
 ---
 
@@ -64,7 +69,7 @@ A formatted string containing:
 ### Example agent prompt
 
 ```
-"Analise o experimento binary-classification"
+"Analyze the binary-classification experiment"
 → Agent calls: load_experiment(experiment_name="binary-classification")
 ```
 
@@ -112,7 +117,7 @@ A formatted string containing:
 ### Example agent prompt
 
 ```
-"Compare os 3 melhores runs do experimento"
+"Compare the top 3 runs of the experiment"
 → Agent calls: compare_runs(run_ids=["abc123", "def456", "ghi789"])
 ```
 
@@ -167,7 +172,7 @@ A formatted string containing:
 ### Example agent prompt
 
 ```
-"Por que o run abc123 teve performance baixa?"
+"Why did run abc123 perform poorly?"
 → Agent calls: diagnose_run(run_id="abc123...")
 ```
 
@@ -220,7 +225,7 @@ A formatted string containing:
 ### Example agent prompt
 
 ```
-"Quais hiperparâmetros mais impactam val_accuracy?"
+"Which hyperparameters have the most impact on val_accuracy?"
 → Agent calls: analyze_patterns(experiment_name="binary-classification", target_metric="val_accuracy")
 ```
 
@@ -274,7 +279,7 @@ Numbered suggestions (up to `num_suggestions`), each with:
 ### Example agent prompt
 
 ```
-"Quais experimentos devo rodar a seguir para melhorar val_loss?"
+"What experiments should I run next to improve val_loss?"
 → Agent calls: suggest_next_experiments(experiment_name="regression-v2", optimization_goal="minimize val_loss")
 ```
 
@@ -338,9 +343,60 @@ The generated Markdown file includes:
 ### Example agent prompt
 
 ```
-"Gera um relatório completo do experimento binary-classification"
+"Generate a full report for the binary-classification experiment"
 → Agent calls: generate_report(experiment_name="binary-classification", report_title="Binary Classification Analysis - March 2026")
 ```
+
+---
+
+## `web_search`
+
+**File:** `src/tools/web_search.py`
+
+**Purpose:** Searches the web for ML techniques, papers, and best practices using the Tavily API. This tool is **optional** — it is only registered when `TAVILY_API_KEY` is set in the environment.
+
+### Signature
+
+```python
+web_search(
+    query: str,
+    max_results: int = 3,
+) -> str
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `query` | `str` | required | Search query (e.g., `"gradient boosting overfitting remedies"`) |
+| `max_results` | `int` | `3` | Number of results to return (min: 1, max: 5) |
+
+### Returns
+
+A formatted string containing numbered search results, each with:
+- Title
+- URL
+- Content snippet (truncated to 300 characters)
+
+### Error cases
+
+| Condition | Return message |
+|---|---|
+| `TAVILY_API_KEY` not set | `ERROR: TAVILY_API_KEY is not configured...` |
+| `tavily-python` not installed | `ERROR: tavily-python is not installed...` |
+| API error | `ERROR: Web search failed — {details}` |
+| No results | `No results found for: {query}` |
+
+### Example agent prompt
+
+```
+"Search for best practices to reduce overfitting in gradient boosting models"
+→ Agent calls: web_search(query="gradient boosting overfitting remedies", max_results=3)
+```
+
+### Enabling web search
+
+Set `TAVILY_API_KEY` in your `.env` file. The tool is automatically registered when the key is present. Get a free API key at [app.tavily.com](https://app.tavily.com/).
 
 ---
 
@@ -356,7 +412,8 @@ from src.tools import (
     analyze_patterns,
     suggest_next_experiments,
     generate_report,
-    ALL_TOOLS,  # list of all 6 tools, for passing to create_deep_agent
+    web_search,
+    ALL_TOOLS,  # 6 core tools + web_search if TAVILY_API_KEY is set
 )
 ```
 
@@ -372,5 +429,5 @@ Or they can be registered with the agent (done automatically in `src/agent/build
 ```python
 from src.agent.builder import create_analyst_agent
 agent = create_analyst_agent()
-# Agent now has all 6 tools available
+# Agent now has all tools available
 ```
